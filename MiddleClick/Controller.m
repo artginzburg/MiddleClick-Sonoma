@@ -1,4 +1,5 @@
 #import "Controller.h"
+#import "PreferenceKeys.h"
 #include "TrayMenu.h"
 #import <Cocoa/Cocoa.h>
 #include <CoreFoundation/CoreFoundation.h>
@@ -66,7 +67,7 @@ CFRunLoopSourceRef currentRunLoopSource;
   threeDown = NO;
   wasThreeDown = NO;
   
-  fingersQua = [[NSUserDefaults standardUserDefaults] integerForKey:@"fingers"];
+  fingersQua = [[NSUserDefaults standardUserDefaults] integerForKey:kFingersNum];
   
   NSString* needToClickNullable = [[NSUserDefaults standardUserDefaults] valueForKey:@"needClick"];
   needToClick = needToClickNullable ? [[NSUserDefaults standardUserDefaults] boolForKey:@"needClick"] : [self getIsSystemTapToClickDisabled];
@@ -270,7 +271,9 @@ int touchCallback(int device, Finger* data, int nFingers, double timestamp,
                   int frame)
 {
   NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
-  fingersQua = [[NSUserDefaults standardUserDefaults] integerForKey:@"fingers"];
+  fingersQua = [[NSUserDefaults standardUserDefaults] integerForKey:kFingersNum];
+  float maxDistanceDelta = [[NSUserDefaults standardUserDefaults] floatForKey:kMaxDistanceDelta];
+  float maxTimeDelta = [[NSUserDefaults standardUserDefaults] integerForKey:kMaxTimeDelta] / 1000.f;
   
   if (needToClick) {
     if (nFingers == fingersQua) {
@@ -288,9 +291,9 @@ int touchCallback(int device, Finger* data, int nFingers, double timestamp,
     if (nFingers == 0) {
       NSTimeInterval elapsedTime = touchStartTime ? -[touchStartTime timeIntervalSinceNow] : 0;
       touchStartTime = NULL;
-      if (middleclickX + middleclickY && elapsedTime <= 0.5f) {
+      if (middleclickX + middleclickY && elapsedTime <= maxTimeDelta) {
         float delta = ABS(middleclickX - middleclickX2) + ABS(middleclickY - middleclickY2);
-        if (delta < 0.4f) {
+        if (delta < maxDistanceDelta) {
           // Emulate a middle click
           
           // get the current pointer location
@@ -316,7 +319,7 @@ int touchCallback(int device, Finger* data, int nFingers, double timestamp,
     } else {
       if (maybeMiddleClick == YES) {
         NSTimeInterval elapsedTime = -[touchStartTime timeIntervalSinceNow];
-        if (elapsedTime > 0.5f)
+        if (elapsedTime > maxTimeDelta)
           maybeMiddleClick = NO;
       }
     }
