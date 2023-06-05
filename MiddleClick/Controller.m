@@ -113,7 +113,7 @@ CFRunLoopSourceRef currentRunLoopSource;
   [self registerMouseCallback:pool];
 }
 
-static void stopUnstableListeners()
+static void stopUnstableListeners(void)
 {
     NSLog(@"Stopping unstable listeners...");
 
@@ -131,7 +131,7 @@ static void stopUnstableListeners()
   [self registerMouseCallback:pool];
 }
 
-static void registerTouchCallback()
+static void registerTouchCallback(void)
 {
     /// Get list of all multi touch devices
     NSMutableArray* deviceList = (NSMutableArray*)MTDeviceCreateList(); // grab our device list
@@ -143,7 +143,7 @@ static void registerTouchCallback()
       registerMTDeviceCallback((MTDeviceRef)[deviceList objectAtIndex:i], touchCallback);
     }
 }
-static void unregisterTouchCallback()
+static void unregisterTouchCallback(void)
 {
     /// Get list of all multi touch devices
     NSMutableArray* deviceList = currentDeviceList; // grab our device list
@@ -186,7 +186,7 @@ static void unregisterTouchCallback()
         [self scheduleRestart:5];
     }
 }
-static void unregisterMouseCallback()
+static void unregisterMouseCallback(void)
 {
     // Remove from the current run loop.
     if (currentRunLoopSource) {
