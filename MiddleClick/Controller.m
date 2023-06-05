@@ -71,7 +71,7 @@ CFRunLoopSourceRef currentRunLoopSource;
   NSString* needToClickNullable = [[NSUserDefaults standardUserDefaults] valueForKey:@"needClick"];
   needToClick = needToClickNullable ? [[NSUserDefaults standardUserDefaults] boolForKey:@"needClick"] : [self getIsSystemTapToClickDisabled];
   
-  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  NSAutoreleasePool* pool = [NSAutoreleasePool new];
   [NSApplication sharedApplication];
   
   registerTouchCallback();
@@ -125,7 +125,7 @@ static void stopUnstableListeners()
 {
   NSLog(@"Starting unstable listeners...");
     
-  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  NSAutoreleasePool* pool = [NSAutoreleasePool new];
 
   registerTouchCallback();
   [self registerMouseCallback:pool];
@@ -133,7 +133,7 @@ static void stopUnstableListeners()
 
 static void registerTouchCallback()
 {
-    // Get list of all multi touch devices
+    /// Get list of all multi touch devices
     NSMutableArray* deviceList = (NSMutableArray*)MTDeviceCreateList(); // grab our device list
     currentDeviceList = deviceList;
 
@@ -145,7 +145,7 @@ static void registerTouchCallback()
 }
 static void unregisterTouchCallback()
 {
-    // Get list of all multi touch devices
+    /// Get list of all multi touch devices
     NSMutableArray* deviceList = currentDeviceList; // grab our device list
 
     // Iterate and unregister callbacks for multitouch devices.
@@ -157,12 +157,12 @@ static void unregisterTouchCallback()
 
 - (void)registerMouseCallback:(NSAutoreleasePool*)pool
 {
-    // we only want to see left mouse down and left mouse up, because we only want
-    // to change that one
+    /// we only want to see left mouse down and left mouse up, because we only want
+    /// to change that one
     CGEventMask eventMask = (CGEventMaskBit(kCGEventLeftMouseDown) | CGEventMaskBit(kCGEventLeftMouseUp));
 
-    // create eventTap which listens for core grpahic events with the filter
-    // sepcified above (so left mouse down and up again)
+    /// create eventTap which listens for core grpahic events with the filter
+    /// specified above (so left mouse down and up again)
     CFMachPortRef eventTap = CGEventTapCreate(
                                               kCGHIDEventTap, kCGHeadInsertEventTap, kCGEventTapOptionDefault,
                                               eventMask, mouseCallback, NULL);
@@ -212,8 +212,8 @@ static void unregisterMouseCallback()
                                                     }];
 }
 
-// Callback for system wake up. This restarts the app to initialize callbacks.
-// Can be tested by entering `pmset sleepnow` in the Terminal
+/// Callback for system wake up. This restarts the app to initialize callbacks.
+/// Can be tested by entering `pmset sleepnow` in the Terminal
 - (void)receiveWakeNote:(NSNotification*)note
 {
   NSLog(@"System woke up, restarting...");
@@ -236,12 +236,12 @@ static void unregisterMouseCallback()
   needToClick = [self getIsSystemTapToClickDisabled];
 }
 
-// listening to mouse clicks to replace them with middle clicks if there are 3
-// fingers down at the time of clicking this is done by replacing the left click
-// down with a other click down and setting the button number to middle click
-// when 3 fingers are down when clicking, and by replacing left click up with
-// other click up and setting three button number to middle click when 3 fingers
-// were down when the last click went down.
+/// listening to mouse clicks to replace them with middle clicks if there are 3
+/// fingers down at the time of clicking this is done by replacing the left click
+/// down with a other click down and setting the button number to middle click
+/// when 3 fingers are down when clicking, and by replacing left click up with
+/// other click up and setting three button number to middle click when 3 fingers
+/// were down when the last click went down.
 CGEventRef mouseCallback(CGEventTapProxy proxy, CGEventType type,
                          CGEventRef event, void* refcon)
 {
@@ -264,26 +264,16 @@ CGEventRef mouseCallback(CGEventTapProxy proxy, CGEventType type,
   return event;
 }
 
-// mulittouch callback, see what is touched. If 3 are on the mouse set
-// threedowns, else unset threedowns.
+/// Mulittouch callback, see what is touched. If 3 are on the mouse set
+/// threedowns, else unset threedowns.
 int touchCallback(int device, Finger* data, int nFingers, double timestamp,
                   int frame)
 {
-  NSAutoreleasePool* pool = [[NSAutoreleasePool alloc] init];
+  NSAutoreleasePool* pool = [NSAutoreleasePool new];
   fingersQua = [[NSUserDefaults standardUserDefaults] integerForKey:@"fingers"];
   
   if (needToClick) {
-    if (nFingers == fingersQua) {
-      if (!threeDown) {
-        threeDown = YES;
-      }
-    }
-    
-    if (nFingers != fingersQua) {
-      if (threeDown) {
-        threeDown = NO;
-      }
-    }
+    threeDown = nFingers == fingersQua;
   } else {
     if (nFingers == 0) {
       touchStartTime = NULL;
@@ -295,17 +285,16 @@ int touchCallback(int device, Finger* data, int nFingers, double timestamp,
           // get the current pointer location
           CGEventRef ourEvent = CGEventCreate(NULL);
           CGPoint ourLoc = CGEventGetLocation(ourEvent);
+          CFRelease(ourEvent);
           
-          CGEventPost(kCGHIDEventTap,
-                      CGEventCreateMouseEvent(NULL, kCGEventOtherMouseDown,
-                                              ourLoc, kCGMouseButtonCenter));
-          CGEventPost(kCGHIDEventTap,
-                      CGEventCreateMouseEvent(NULL, kCGEventOtherMouseUp,
-                                              ourLoc, kCGMouseButtonCenter));
+          CGMouseButton buttonType = kCGMouseButtonCenter;
+          
+          postMouseEvent(kCGEventOtherMouseDown, buttonType, ourLoc);
+          postMouseEvent(kCGEventOtherMouseUp, buttonType, ourLoc);
         }
       }
     } else if (nFingers > 0 && touchStartTime == NULL) {
-      NSDate* now = [[NSDate alloc] init];
+      NSDate* now = [NSDate new];
       touchStartTime = [now retain];
       [now release];
       
@@ -396,6 +385,12 @@ static void unregisterMTDeviceCallback(MTDeviceRef device, MTContactCallbackFunc
     MTDeviceRelease(device);
 }
 
+static void postMouseEvent(CGEventType eventType, CGMouseButton buttonType, CGPoint ourLoc) {
+    CGEventRef mouseEvent = CGEventCreateMouseEvent(NULL, eventType, ourLoc, buttonType);
+    CGEventPost(kCGHIDEventTap, mouseEvent);
+    CFRelease(mouseEvent);
+}
+
 - (BOOL)getIsSystemTapToClickDisabled {
   NSString* isSystemTapToClickEnabled = [self runCommand:(@"defaults read com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking")];
   return [isSystemTapToClickEnabled isEqualToString:@"0\n"];
@@ -404,7 +399,7 @@ static void unregisterMTDeviceCallback(MTDeviceRef device, MTContactCallbackFunc
 - (NSString *)runCommand:(NSString *)commandToRun {
   NSPipe* pipe = [NSPipe pipe];
   
-  NSTask* task = [[NSTask alloc] init];
+  NSTask* task = [NSTask new];
   [task setLaunchPath: @"/bin/sh"];
   [task setArguments:@[@"-c", [NSString stringWithFormat:@"%@", commandToRun]]];
   [task setStandardOutput:pipe];
@@ -412,7 +407,11 @@ static void unregisterMTDeviceCallback(MTDeviceRef device, MTContactCallbackFunc
   NSFileHandle* file = [pipe fileHandleForReading];
   [task launch];
   
-  return [[NSString alloc] initWithData:[file readDataToEndOfFile] encoding:NSUTF8StringEncoding];
+  NSString *output = [[NSString alloc] initWithData:[file readDataToEndOfFile] encoding:NSUTF8StringEncoding];
+  
+  [task release];
+  
+  return [output autorelease];
 }
 
 @end

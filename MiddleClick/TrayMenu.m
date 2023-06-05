@@ -95,7 +95,7 @@
   [self createMenuAccessibilityPermissionItems:menu];
   
   // Add About
-  menuItem = [menu addItemWithTitle:@"About MiddleClick..."
+  menuItem = [menu addItemWithTitle:[NSString stringWithFormat:@"About %@...", getAppName()]
                              action:@selector(openWebsite:)
                       keyEquivalent:@""];
   [menuItem setTarget:self];
@@ -161,7 +161,7 @@
                   statusItemWithLength:24] retain];
   _statusItem.behavior = NSStatusItemBehaviorRemovalAllowed;
   _statusItem.menu = menu;
-  _statusItem.button.toolTip = @"MiddleClick";
+  _statusItem.button.toolTip = getAppName();
   _statusItem.button.image = icon;
 
   [self initAccessibilityPermissionStatus:menu];
@@ -174,6 +174,10 @@
 {
   _statusItem.visible = true;
   return 1;
+}
+
+NSString* getAppName(void) {
+    return [[NSProcessInfo processInfo] processName];
 }
 
 @end
