@@ -1,4 +1,5 @@
 #import "Controller.h"
+#import "PreferenceKeys.h"
 #include "TrayMenu.h"
 #import <Cocoa/Cocoa.h>
 #include <CoreFoundation/CoreFoundation.h>
@@ -65,24 +66,24 @@ CFRunLoopSourceRef currentRunLoopSource;
 
   threeDown = NO;
   wasThreeDown = NO;
-  
-  fingersQua = [[NSUserDefaults standardUserDefaults] integerForKey:@"fingers"];
-  
+
+  fingersQua = [[NSUserDefaults standardUserDefaults] integerForKey:kFingersNum];
+
   NSString* needToClickNullable = [[NSUserDefaults standardUserDefaults] valueForKey:@"needClick"];
   needToClick = needToClickNullable ? [[NSUserDefaults standardUserDefaults] boolForKey:@"needClick"] : [self getIsSystemTapToClickDisabled];
-  
+
   NSAutoreleasePool* pool = [NSAutoreleasePool new];
   [NSApplication sharedApplication];
-  
+
   registerTouchCallback();
-  
+
   // register a callback to know when osx come back from sleep
   [[[NSWorkspace sharedWorkspace] notificationCenter]
    addObserver:self
    selector:@selector(receiveWakeNote:)
    name:NSWorkspaceDidWakeNotification
    object:NULL];
-  
+
   // Register IOService notifications for added devices.
   IONotificationPortRef port = IONotificationPortCreate(kIOMasterPortDefault);
   CFRunLoopAddSource(CFRunLoopGetMain(),
@@ -105,11 +106,11 @@ CFRunLoopSourceRef currentRunLoopSource;
       IOObjectRelease(item);
     }
   }
-  
+
   // when displays are reconfigured restart of the app is needed, so add a calback to the
   // reconifguration of Core Graphics
   CGDisplayRegisterReconfigurationCallback(displayReconfigurationCallBack, self);
-  
+
   [self registerMouseCallback:pool];
 }
 
@@ -124,7 +125,7 @@ static void stopUnstableListeners(void)
 - (void)startUnstableListeners
 {
   NSLog(@"Starting unstable listeners...");
-    
+
   NSAutoreleasePool* pool = [NSAutoreleasePool new];
 
   registerTouchCallback();
@@ -204,7 +205,7 @@ static void unregisterMouseCallback(void)
   if (_restartTimer != nil) { // Check whether the timer object was not released.
     [_restartTimer invalidate]; // Invalidate any existing timer.
   }
-  
+
   _restartTimer = [NSTimer scheduledTimerWithTimeInterval:delay
                                                   repeats:NO
                                                     block:^(NSTimer* timer) {
@@ -253,7 +254,7 @@ CGEventRef mouseCallback(CGEventTapProxy proxy, CGEventType type,
                                   kCGMouseButtonCenter);
       threeDown = NO;
     }
-    
+
     if (wasThreeDown && type == kCGEventLeftMouseUp) {
       wasThreeDown = NO;
       CGEventSetType(event, kCGEventOtherMouseUp);
@@ -270,25 +271,28 @@ int touchCallback(int device, Finger* data, int nFingers, double timestamp,
                   int frame)
 {
   NSAutoreleasePool* pool = [NSAutoreleasePool new];
-  fingersQua = [[NSUserDefaults standardUserDefaults] integerForKey:@"fingers"];
-  
+  fingersQua = [[NSUserDefaults standardUserDefaults] integerForKey:kFingersNum];
+  float maxDistanceDelta = [[NSUserDefaults standardUserDefaults] floatForKey:kMaxDistanceDelta];
+  float maxTimeDelta = [[NSUserDefaults standardUserDefaults] integerForKey:kMaxTimeDeltaMs] / 1000.f;
+
   if (needToClick) {
     threeDown = nFingers == fingersQua;
   } else {
     if (nFingers == 0) {
+      NSTimeInterval elapsedTime = touchStartTime ? -[touchStartTime timeIntervalSinceNow] : 0;
       touchStartTime = NULL;
-      if (middleclickX + middleclickY) {
+      if (middleclickX + middleclickY && elapsedTime <= maxTimeDelta) {
         float delta = ABS(middleclickX - middleclickX2) + ABS(middleclickY - middleclickY2);
-        if (delta < 0.4f) {
+        if (delta < maxDistanceDelta) {
           // Emulate a middle click
-          
+
           // get the current pointer location
           CGEventRef ourEvent = CGEventCreate(NULL);
           CGPoint ourLoc = CGEventGetLocation(ourEvent);
           CFRelease(ourEvent);
-          
+
           CGMouseButton buttonType = kCGMouseButtonCenter;
-          
+
           postMouseEvent(kCGEventOtherMouseDown, buttonType, ourLoc);
           postMouseEvent(kCGEventOtherMouseUp, buttonType, ourLoc);
         }
@@ -297,24 +301,24 @@ int touchCallback(int device, Finger* data, int nFingers, double timestamp,
       NSDate* now = [NSDate new];
       touchStartTime = [now retain];
       [now release];
-      
+
       maybeMiddleClick = YES;
       middleclickX = 0.0f;
       middleclickY = 0.0f;
     } else {
       if (maybeMiddleClick == YES) {
         NSTimeInterval elapsedTime = -[touchStartTime timeIntervalSinceNow];
-        if (elapsedTime > 0.5f)
+        if (elapsedTime > maxTimeDelta)
           maybeMiddleClick = NO;
       }
     }
-    
+
     if (nFingers > fingersQua) {
       maybeMiddleClick = NO;
       middleclickX = 0.0f;
       middleclickY = 0.0f;
     }
-    
+
     if (nFingers == fingersQua) {
       if (maybeMiddleClick == YES) {
         for (int i = 0; i < fingersQua; i++)
@@ -338,7 +342,7 @@ int touchCallback(int device, Finger* data, int nFingers, double timestamp,
       }
     }
   }
-  
+
   [pool release];
   return 0;
 }
@@ -359,7 +363,7 @@ void multitouchDeviceAddedCallback(void* _controller,
   while ((item = IOIteratorNext(iterator))) {
     IOObjectRelease(item);
   }
-  
+
   NSLog(@"Multitouch device added, restarting...");
   Controller* controller = (Controller*)_controller;
   [controller scheduleRestart:2];
@@ -398,19 +402,19 @@ static void postMouseEvent(CGEventType eventType, CGMouseButton buttonType, CGPo
 
 - (NSString *)runCommand:(NSString *)commandToRun {
   NSPipe* pipe = [NSPipe pipe];
-  
+
   NSTask* task = [NSTask new];
   [task setLaunchPath: @"/bin/sh"];
   [task setArguments:@[@"-c", [NSString stringWithFormat:@"%@", commandToRun]]];
   [task setStandardOutput:pipe];
-  
+
   NSFileHandle* file = [pipe fileHandleForReading];
   [task launch];
-  
+
   NSString *output = [[NSString alloc] initWithData:[file readDataToEndOfFile] encoding:NSUTF8StringEncoding];
-  
+
   [task release];
-  
+
   return [output autorelease];
 }
 

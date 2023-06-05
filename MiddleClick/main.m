@@ -1,10 +1,24 @@
 #import "Controller.h"
+#import "PreferenceKeys.h"
 #import "TrayMenu.h"
 
 int main(int argc, char* argv[])
 {
+  id keys[] = {
+    kFingersNum,
+    kMaxDistanceDelta,
+    kMaxTimeDeltaMs,
+  };
+  id objects[] = {
+    [NSNumber numberWithInt:kFingersNumDefault],
+    [NSNumber numberWithFloat:kMaxDistanceDeltaDefault],
+    [NSNumber numberWithInt:kMaxTimeDeltaMsDefault],
+  };
+  NSUInteger count = sizeof(objects) / sizeof(id);
   NSDictionary *appDefaults = [NSDictionary
-                               dictionaryWithObject:[NSNumber numberWithInt:3] forKey:@"fingers"];
+                               dictionaryWithObjects:objects
+                               forKeys:keys
+                               count:count];
   
   [[NSUserDefaults standardUserDefaults] registerDefaults:appDefaults];
   

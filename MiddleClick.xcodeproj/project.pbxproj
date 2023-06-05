@@ -32,6 +32,7 @@
 		75A6B69C0FEE90530071FAC0 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MiddleClick/Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* MiddleClick.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MiddleClick.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9753175829D5983E0065CAA7 /* PreferenceKeys.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PreferenceKeys.h; path = MiddleClick/PreferenceKeys.h; sourceTree = "<group>"; };
 		FAD94F9210A88A7800A520EC /* Controller.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Controller.h; path = MiddleClick/Controller.h; sourceTree = "<group>"; };
 		FAD94F9310A88A7800A520EC /* Controller.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = Controller.m; path = MiddleClick/Controller.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -105,6 +106,7 @@
 				FAD94F9210A88A7800A520EC /* Controller.h */,
 				FAD94F9310A88A7800A520EC /* Controller.m */,
 				29B97316FDCFA39411CA2CEA /* main.m */,
+				9753175829D5983E0065CAA7 /* PreferenceKeys.h */,
 			);
 			name = "Other Sources";
 			sourceTree = "<group>";

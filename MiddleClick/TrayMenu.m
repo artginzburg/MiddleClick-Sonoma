@@ -1,4 +1,5 @@
 #import "TrayMenu.h"
+#import "PreferenceKeys.h"
 #import "Controller.h"
 #import <Cocoa/Cocoa.h>
 
@@ -74,7 +75,7 @@
   bool clickMode = [myController getClickMode];
   NSString* clickModeInfo = clickMode ? @"Click" : @"Click or Tap";
   
-  int fingersQua = (int)[[NSUserDefaults standardUserDefaults] integerForKey:@"fingers"];
+  int fingersQua = (int)[[NSUserDefaults standardUserDefaults] integerForKey:kFingersNum];
   
   [infoItem setTitle:[clickModeInfo stringByAppendingFormat: @" with %d Fingers", fingersQua]];
   [tapToClickItem setState:clickMode ? NSControlStateValueOff : NSControlStateValueOn];
