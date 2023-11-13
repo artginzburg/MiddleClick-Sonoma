@@ -248,11 +248,15 @@ static void unregisterMouseCallback(void)
   stopUnstableListeners();
 }
 
-/// Callback for user login. This restarts the app to initialize callbacks.
+/// Callback for user login. Initialize callbacks when the user is active on this account again
+/// Start listeners istead of calling 'scheduleRestart' because it would fail to unregister them
 - (void)receiveBecomeActiveNote:(NSNotification*)note
 {
   NSLog(@"User logged back in, restarting...");
   loggedOut = false;
+  // If we try to restart instead of just plainly subscribe, the app crashes
+  // At the 'unregisterMTDeviceCallback MTDeviceRelease(device);'
+  // Seems like it can't find the device to unsub from
   [self startUnstableListeners];
 }
 
