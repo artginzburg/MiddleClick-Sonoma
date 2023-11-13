@@ -54,6 +54,8 @@ NSMutableArray* currentDeviceList;
 CFMachPortRef currentEventTap;
 CFRunLoopSourceRef currentRunLoopSource;
 
+BOOL loggedOut;
+
 #pragma mark Implementation
 
 @implementation Controller {
@@ -66,6 +68,9 @@ CFRunLoopSourceRef currentRunLoopSource;
 
   threeDown = NO;
   wasThreeDown = NO;
+  // Ignore restart command if user is logged out
+  // Primarily happens due to "Display reconfigured, restarting..."
+  loggedOut = false;
   
   fingersQua = [[NSUserDefaults standardUserDefaults] integerForKey:kFingersNum];
   
@@ -82,6 +87,20 @@ CFRunLoopSourceRef currentRunLoopSource;
    addObserver:self
    selector:@selector(receiveWakeNote:)
    name:NSWorkspaceDidWakeNotification
+   object:NULL];
+
+  // register a callback to know when user switched out from their account to stop listeners
+  [[[NSWorkspace sharedWorkspace] notificationCenter]
+   addObserver:self
+   selector:@selector(receiveResignActiveNote:)
+   name:NSWorkspaceSessionDidResignActiveNotification
+   object:NULL];
+    
+  // register a callback to know when user logged back in to start working again
+  [[[NSWorkspace sharedWorkspace] notificationCenter]
+   addObserver:self
+   selector:@selector(receiveBecomeActiveNote:)
+   name:NSWorkspaceSessionDidBecomeActiveNotification
    object:NULL];
   
   // Register IOService notifications for added devices.
@@ -221,6 +240,22 @@ static void unregisterMouseCallback(void)
   [self scheduleRestart:10];
 }
 
+/// Callback for user logout. This stops all listeners so the taps won't duplicate across 2 users
+- (void)receiveResignActiveNote:(NSNotification*)note
+{
+  NSLog(@"User logged out, stopping...");
+  loggedOut = true;
+  stopUnstableListeners();
+}
+
+/// Callback for user login. This restarts the app to initialize callbacks.
+- (void)receiveBecomeActiveNote:(NSNotification*)note
+{
+  NSLog(@"User logged back in, restarting...");
+  loggedOut = false;
+  [self startUnstableListeners];
+}
+
 - (BOOL)getClickMode
 {
   return needToClick;
@@ -350,6 +385,10 @@ int touchCallback(int device, Finger* data, int nFingers, double timestamp,
 /// Restart the listeners when devices are connected/invalidated.
 - (void)restartListeners
 {
+  if (loggedOut) {
+    NSLog(@"User is logged out, abort restart...");
+    return;
+  }
   NSLog(@"Restarting app functionality...");
   stopUnstableListeners();
   [self startUnstableListeners];
