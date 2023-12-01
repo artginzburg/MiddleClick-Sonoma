@@ -369,6 +369,8 @@ static BOOL isIgnoredAppBundle(CGPoint point) {
 
   NSInteger windowNumber = [NSWindow windowNumberAtPoint:point belowWindowWithWindowNumber:0];
 
+  bool ignored = false;
+
   CFArrayRef windows = CGWindowListCopyWindowInfo(kCGWindowListOptionOnScreenOnly, kCGNullWindowID);
   for (NSDictionary* window in (__bridge NSArray*)windows) {
     if ([window[(NSString*)kCGWindowNumber] integerValue] == windowNumber) {
@@ -377,12 +379,14 @@ static BOOL isIgnoredAppBundle(CGPoint point) {
 
       NSString* appBundle = [app bundleIdentifier];
       if ([ignoredAppBundles containsObject:appBundle]) {
-        return true;
+        ignored = true;
+        break;
       }
     }
   }
 
-  return false;
+  CFRelease(windows);
+  return ignored;
 }
 
 /// Callback when a multitouch device is added.
