@@ -8,11 +8,13 @@ int main(int argc, char* argv[])
     kFingersNum,
     kMaxDistanceDelta,
     kMaxTimeDeltaMs,
+    kIgnoredAppBundles
   };
   id objects[] = {
     [NSNumber numberWithInt:kFingersNumDefault],
     [NSNumber numberWithFloat:kMaxDistanceDeltaDefault],
     [NSNumber numberWithInt:kMaxTimeDeltaMsDefault],
+    [NSArray arrayWithArray:kIgnoredAppBundlesDefault]
   };
   NSUInteger count = sizeof(objects) / sizeof(id);
   NSDictionary *appDefaults = [NSDictionary
