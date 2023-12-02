@@ -380,8 +380,9 @@ static BOOL isIgnoredAppBundle(CGPoint point) {
       NSString* appBundle = [app bundleIdentifier];
       if ([ignoredAppBundles containsObject:appBundle]) {
         ignored = true;
-        break;
       }
+
+      break;
     }
   }
 
