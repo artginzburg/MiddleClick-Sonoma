@@ -367,6 +367,8 @@ static BOOL isIgnoredAppBundle(CGPoint point) {
     return false;
   }
 
+  point.y = [[NSScreen mainScreen] frame].size.height - point.y;
+
   NSInteger windowNumber = [NSWindow windowNumberAtPoint:point belowWindowWithWindowNumber:0];
 
   bool ignored = false;
