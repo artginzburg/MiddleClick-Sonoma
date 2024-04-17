@@ -80,16 +80,6 @@ brew install --cask --no-quarantine middleclick
 
 > To recover the item, just open MiddleClick when it's already running
 
-### Number of Fingers
-
-- Want to use 4, 5 or 2 fingers for middleclicking? No trouble. Even 10 is possible.
-
-```ps1
-defaults write com.rouge41.middleClick fingers <int>
-```
-
-> Initially, it's 3 fingers to middleclick.
-
 ### Add Login Item
 
 > Make it open automatically when you log in
@@ -103,6 +93,41 @@ osascript -e 'tell application "System Events" to make login item at end with pr
 ```
 
 </details>
+
+## Preferences
+
+### Number of Fingers
+
+- Want to use 4, 5 or 2 fingers for middleclicking? No trouble. Even 10 is possible.
+
+```ps1
+defaults write com.rouge41.middleClick fingers 4
+```
+
+> Default is 3
+
+### Tapping preferences
+
+#### Max Distance Delta
+
+- The maximum distance the cursor can travel between touch and release for a tap to be considered valid.
+- The position is normalized and values go from 0 to 1.
+
+```ps1
+defaults write com.rouge41.middleClick maxDistanceDelta 0.03
+```
+
+> Default is 0.05
+
+#### Max Time Delta
+
+- The maximum interval in milliseconds between touch and release for a tap to be considered valid.
+
+```ps1
+defaults write com.rouge41.middleClick maxTimeDelta 150
+```
+
+> Default is 300
 
 ---
 
