@@ -4,7 +4,7 @@ import Foundation
 import IOKit
 import IOKit.hid
 
-// Globals
+// MARK: Globals
 @MainActor public var needToClick = MiddleClickConfig.needClickDefault
 @MainActor public var threeDown = false
 @MainActor public var wasThreeDown = false

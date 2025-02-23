@@ -1,6 +1,6 @@
 import CoreFoundation
 
-// Multitouch API Bridging
+// MARK: Multitouch API Bridging
 typealias MTDeviceRef = CFTypeRef
 typealias MTDevice = MTDeviceRef
 typealias MTContactCallbackFunction = (

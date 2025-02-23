@@ -14,7 +14,6 @@ import Cocoa
     super.init()
   }
 
-  // Initialize accessibility permission status
   @objc func initAccessibilityPermissionStatus(menu: NSMenu) {
     let hasAccessibilityPermission = SystemPermissions.detectAccessibilityIsGranted(forcePrompt: true)
 
@@ -33,21 +32,18 @@ import Cocoa
     }
   }
 
-  // Update accessibility permission status
   func updateAccessibilityPermissionStatus(menu: NSMenu, hasAccessibilityPermission: Bool) {
     statusItem.button?.appearsDisabled = !hasAccessibilityPermission
     accessibilityPermissionStatusItem.isHidden = hasAccessibilityPermission
     accessibilityPermissionActionItem.isHidden = hasAccessibilityPermission
   }
 
-  // Open the website
   @objc func openWebsite(sender: Any) {
     if let url = URL(string: "https://github.com/artginzburg/MiddleClick-Sonoma") {
       NSWorkspace.shared.open(url)
     }
   }
 
-  // Open accessibility settings
   @objc func openAccessibilitySettings(sender: Any) {
     let isPreCatalina =
       (floor(NSAppKitVersion.current.rawValue) < NSAppKitVersion.macOS10_15.rawValue)
@@ -70,19 +66,16 @@ import Cocoa
     }
   }
 
-  // Toggle Tap to Click
   @objc func toggleTapToClick(sender: NSButton) {
     myController.setMode(sender.state == .on)
     setChecks()
   }
 
-  // Reset Tap to Click
   @objc func resetTapToClick(sender: NSButton) {
     myController.resetClickMode()
     setChecks()
   }
 
-  // Set the checks based on configuration
   func setChecks() {
     let clickMode = myController.getClickMode()
     let clickModeInfo = "Click" + (clickMode ? "" : " or Tap")
@@ -95,12 +88,10 @@ import Cocoa
     tapToClickItem.state = clickMode ? .off : .on
   }
 
-  // Quit action
   @objc func actionQuit(sender: Any) {
     NSApp.terminate(sender)
   }
 
-  // Create the menu
   func createMenu() -> NSMenu {
     let menu = NSMenu()
     menu.delegate = self
