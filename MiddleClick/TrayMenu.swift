@@ -7,6 +7,7 @@ import Cocoa
   var accessibilityPermissionStatusItem: NSMenuItem!
   var accessibilityPermissionActionItem: NSMenuItem!
   var statusItem: NSStatusItem!
+  var ignoredAppItem: NSMenuItem!
 
   init(controller: Controller) {
     myController = controller
@@ -102,27 +103,25 @@ import Cocoa
   // Create the menu
   func createMenu() -> NSMenu {
     let menu = NSMenu()
+    menu.delegate = self
 
     createMenuAccessibilityPermissionItems(menu: menu)
 
-    // Add About
-    let aboutItem = menu.addItem(
-      withTitle: "About \(getAppName())...", action: #selector(openWebsite(sender:)),
-      keyEquivalent: "")
-    aboutItem.target = self
+    ignoredAppItem = menu
+      .addItem(
+        withTitle: "Ignore focused app",
+        action: #selector(ignoreApp),
+        keyEquivalent: ""
+      )
+    menu.addItem(.separator())
 
-    menu.addItem(NSMenuItem.separator())
-
-    // Add info item
     infoItem = menu.addItem(withTitle: "", action: nil, keyEquivalent: "")
     infoItem.target = self
 
-    // Add Tap to Click
     tapToClickItem = menu.addItem(
       withTitle: "Tap to click", action: #selector(toggleTapToClick), keyEquivalent: "")
     tapToClickItem.target = self
 
-    // Add Reset
     let resetItem = menu.addItem(
       withTitle: "Reset to System Settings", action: #selector(resetTapToClick(sender:)),
       keyEquivalent: "")
@@ -132,10 +131,13 @@ import Cocoa
 
     setChecks()
 
-    // Add Separator
     menu.addItem(NSMenuItem.separator())
 
-    // Add Quit
+    let aboutItem = menu.addItem(
+      withTitle: "About \(getAppName())...", action: #selector(openWebsite(sender:)),
+      keyEquivalent: "")
+    aboutItem.target = self
+
     let quitItem = menu.addItem(
       withTitle: "Quit", action: #selector(actionQuit(sender:)), keyEquivalent: "q")
     quitItem.target = self
@@ -180,5 +182,37 @@ import Cocoa
   {
     statusItem.isVisible = true
     return true
+  }
+}
+
+
+extension TrayMenu: NSMenuDelegate {
+  func menuWillOpen(_ menu: NSMenu) {
+    updateIgnoredAppItem()
+  }
+
+  func updateIgnoredAppItem() {
+    if let focusedAppName = getFocusedApp()?.localizedName {
+      ignoredAppItem.title = "Ignore " + focusedAppName
+      ignoredAppItem.state = isIgnoredAppBundle() ? .on : .off
+    }
+  }
+
+  @objc func ignoreApp(sender: Any) {
+    var ignoredAppBundles = UserDefaults.standard.stringArray(
+      forKey: MiddleClickConfig.ignoredAppBundlesKey
+    ) ?? MiddleClickConfig.ignoredAppBundlesDefault
+
+    guard let focusedBundleID = getFocusedApp()?.bundleIdentifier else { return }
+
+    if ignoredAppBundles.contains(focusedBundleID) {
+      ignoredAppBundles.removeAll { bundleID in
+        return bundleID == focusedBundleID
+      }
+    } else {
+      ignoredAppBundles.append(focusedBundleID)
+    }
+
+    UserDefaults.standard.set(ignoredAppBundles, forKey: MiddleClickConfig.ignoredAppBundlesKey)
   }
 }
