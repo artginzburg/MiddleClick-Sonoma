@@ -242,6 +242,8 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/MiddleClick/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = MiddleClick;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INSTALL_PATH = "$(HOME)/Applications";
 				LOCALIZED_STRING_SWIFTUI_SUPPORT = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
@@ -279,6 +281,8 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = NO;
 				INFOPLIST_FILE = "$(SRCROOT)/MiddleClick/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = MiddleClick;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.productivity";
 				INSTALL_PATH = "$(HOME)/Applications";
 				LOCALIZED_STRING_SWIFTUI_SUPPORT = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
