@@ -15,6 +15,9 @@ struct MiddleClickConfig {
 
   static let needClickKey = "needClick"
   static let needClickDefault = false
+
+  static let ignoredAppBundlesKey = "ignoredAppBundles"
+  static let ignoredAppBundlesDefault: [String] = []
 }
 
 let kCGMouseButtonCenter: Int64 = 2

@@ -221,6 +221,8 @@ UserDefaults.standard
 
 @MainActor let mouseCallback: CGEventTapCallBack = {
   proxy, type, event, refcon in
+  if isIgnoredAppBundle() { return Unmanaged.passUnretained(event) }
+
     if threeDown && (type == .leftMouseDown || type == .rightMouseDown) {
       wasThreeDown = true
       event.type = .otherMouseDown
@@ -248,10 +250,23 @@ UserDefaults.standard
   return false
 }
 
+/// Caveat: Depends on getFocusedApp(), but the cursor may actually be above a window that is not currently focused, in which case a middle-click will pass through to an "Ignored" application.
+func isIgnoredAppBundle() -> Bool {
+  let ignoredAppBundles = UserDefaults.standard.stringArray(
+    forKey: MiddleClickConfig.ignoredAppBundlesKey
+  ) ?? MiddleClickConfig.ignoredAppBundlesDefault
+
+  guard let bundleId = getFocusedApp()?.bundleIdentifier else { return false }
+
+  return ignoredAppBundles.contains(bundleId)
+}
+
 @MainActor func touchCallback(
   device: Int32, data: UnsafeMutablePointer<Finger>?, nFingers: Int32,
   timestamp: Double, frame: Int32
 ) -> Int32 {
+  if isIgnoredAppBundle() { return 0 }
+
     threeDown =
       allowMoreFingers ? nFingers >= fingersQua : nFingers == fingersQua
 
@@ -342,6 +357,10 @@ public func emulateMiddleClick() {
 
   postMouseEvent(type: .otherMouseDown, button: buttonType, location: location)
   postMouseEvent(type: .otherMouseUp, button: buttonType, location: location)
+}
+
+func getFocusedApp() -> NSRunningApplication? {
+  return NSWorkspace.shared.frontmostApplication
 }
 
 public func postMouseEvent(
