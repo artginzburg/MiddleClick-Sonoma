@@ -3,6 +3,6 @@ import CoreFoundation
 
 class SystemPermissions {
   static func detectAccessibilityIsGranted(forcePrompt: Bool) -> Bool {
-    return AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue(): forcePrompt] as CFDictionary);
+    return AXIsProcessTrustedWithOptions([kAXTrustedCheckOptionPrompt.takeUnretainedValue(): forcePrompt] as CFDictionary)
   }
 }

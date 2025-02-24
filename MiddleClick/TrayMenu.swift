@@ -205,5 +205,6 @@ extension TrayMenu: NSMenuDelegate {
     }
 
     UserDefaults.standard.set(ignoredAppBundles, forKey: MiddleClickConfig.ignoredAppBundlesKey)
+    refreshIgnoredAppBundles()
   }
 }

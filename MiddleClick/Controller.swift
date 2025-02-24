@@ -5,6 +5,7 @@ import IOKit
 import IOKit.hid
 
 // MARK: Globals
+/// inverted Tap to Click flag
 @MainActor public var needToClick = MiddleClickConfig.needClickDefault
 @MainActor public var threeDown = false
 @MainActor public var wasThreeDown = false
@@ -17,9 +18,9 @@ import IOKit.hid
 @MainActor public var middleClickY2: Float = 0.0
 @MainActor public var fingersQua = UserDefaults.standard.integer(
   forKey: MiddleClickConfig.fingersNumKey)
-@MainActor public let maxDistanceDelta = UserDefaults.standard.float(
+public let maxDistanceDelta = UserDefaults.standard.float(
   forKey: MiddleClickConfig.maxDistanceDeltaKey)
-@MainActor public let maxTimeDelta =
+public let maxTimeDelta =
 UserDefaults.standard
   .double(forKey: MiddleClickConfig.maxTimeDeltaMsKey) / 1000.0
 @MainActor public var allowMoreFingers = UserDefaults.standard.bool(
@@ -198,25 +199,9 @@ UserDefaults.standard
   }
 
   func getIsSystemTapToClickDisabled() -> Bool {
-    let output = runCommand(
-      "defaults read com.apple.driver.AppleBluetoothMultitouch.trackpad Clicking"
-    )
-    return output == "0\n"
+    let clickingEnabled = CFPreferencesCopyAppValue("Clicking" as CFString, "com.apple.driver.AppleBluetoothMultitouch.trackpad" as CFString) as? Int ?? 1
+    return clickingEnabled == 0
   }
-
-  func runCommand(_ command: String) -> String {
-    let pipe = Pipe()
-    let task = Process()
-    task.launchPath = "/bin/sh"
-    task.arguments = ["-c", command]
-    task.standardOutput = pipe
-
-    task.launch()
-
-    let data = pipe.fileHandleForReading.readDataToEndOfFile()
-    return String(data: data, encoding: .utf8) ?? ""
-  }
-
 }
 
 @MainActor let mouseCallback: CGEventTapCallBack = {
@@ -241,65 +226,68 @@ UserDefaults.standard
 }
 
 @MainActor func shouldPreventEmulation() -> Bool {
-  if let naturalLastTime = naturalMiddleClickLastTime {
-    let elapsedTimeSinceNatural = -naturalLastTime.timeIntervalSinceNow;
-    if elapsedTimeSinceNatural <= maxTimeDelta * 0.75 {
-      return true
-    }
-  }
-  return false
+  guard let naturalLastTime = naturalMiddleClickLastTime else { return false }
+
+  let elapsedTimeSinceNatural = -naturalLastTime.timeIntervalSinceNow
+  return elapsedTimeSinceNatural <= maxTimeDelta * 0.75 // fine-tuned multiplier
+}
+
+@MainActor var ignoredAppBundlesCache: Set<String>?
+@MainActor func refreshIgnoredAppBundles() {
+  ignoredAppBundlesCache = Set(UserDefaults.standard.stringArray(forKey: MiddleClickConfig.ignoredAppBundlesKey) ?? [])
 }
 
 /// Caveat: Depends on getFocusedApp(), but the cursor may actually be above a window that is not currently focused, in which case a middle-click will pass through to an "Ignored" application.
-func isIgnoredAppBundle() -> Bool {
-  let ignoredAppBundles = UserDefaults.standard.stringArray(
-    forKey: MiddleClickConfig.ignoredAppBundlesKey
-  ) ?? MiddleClickConfig.ignoredAppBundlesDefault
-
+@MainActor func isIgnoredAppBundle() -> Bool {
   guard let bundleId = getFocusedApp()?.bundleIdentifier else { return false }
-
-  return ignoredAppBundles.contains(bundleId)
+  return ignoredAppBundlesCache?.contains(bundleId) ?? false
 }
 
-@MainActor func touchCallback(
-  device: Int32, data: UnsafeMutablePointer<Finger>?, nFingers: Int32,
-  timestamp: Double, frame: Int32
-) -> Int32 {
+@MainActor func handleTouchEnd() {
+  guard let startTime = touchStartTime else { return }
+
+  let elapsedTime = -startTime.timeIntervalSinceNow
+  touchStartTime = nil
+
+  guard middleClickX + middleClickY > 0 && elapsedTime <= maxTimeDelta else {
+    return
+  }
+
+  let delta = abs(middleClickX - middleClickX2) + abs(middleClickY - middleClickY2)
+  if delta < maxDistanceDelta && !shouldPreventEmulation() {
+    emulateMiddleClick()
+  }
+}
+
+@MainActor let touchCallback: MTContactCallbackFunction = {
+  device, data, nFingers, timestamp, frame in
   if isIgnoredAppBundle() { return 0 }
 
     threeDown =
       allowMoreFingers ? nFingers >= fingersQua : nFingers == fingersQua
 
-  let tapToClickEnabled = !needToClick;
-  if (!tapToClickEnabled) { return 0; }
+  if needToClick { return 0 }
 
   if nFingers == 0 {
-    if let startTime = touchStartTime {
-      let elapsedTime = -startTime.timeIntervalSinceNow
-      touchStartTime = nil
+    handleTouchEnd()
+    return 0
+  }
 
-      if middleClickX + middleClickY > 0 && elapsedTime <= maxTimeDelta {
-        let delta =
-          abs(middleClickX - middleClickX2)
-          + abs(middleClickY - middleClickY2)
-        if delta < maxDistanceDelta {
-          if !shouldPreventEmulation() {
-            emulateMiddleClick()
-          }
-        }
-      }
-    }
-  } else if nFingers > 0 && touchStartTime == nil {
+  let isTouchStart = nFingers > 0 && touchStartTime == nil
+  if isTouchStart {
     touchStartTime = Date()
     maybeMiddleClick = true
     middleClickX = 0.0
     middleClickY = 0.0
-  } else if maybeMiddleClick {
-    let elapsedTime = -(touchStartTime?.timeIntervalSinceNow ?? 0)
+  } else if maybeMiddleClick, let touchStartTime = touchStartTime {
+    // Timeout check for middle click
+    let elapsedTime = -touchStartTime.timeIntervalSinceNow
     if elapsedTime > maxTimeDelta {
       maybeMiddleClick = false
     }
   }
+
+  if nFingers < fingersQua { return 0 }
 
   if !allowMoreFingers && nFingers > fingersQua {
     maybeMiddleClick = false
@@ -307,31 +295,34 @@ func isIgnoredAppBundle() -> Bool {
     middleClickY = 0.0
   }
 
-  if allowMoreFingers ? nFingers >= fingersQua : nFingers == fingersQua {
-    if maybeMiddleClick {
-      //      middleClickX = 0.0 // TODO check if setting to 0 is necessary here
-      //      middleClickY = 0.0
-      for i in 0..<fingersQua {
-        if let fingerData = data?.advanced(by: Int(i)).pointee {
-          let pos = fingerData.normalized.pos
-          middleClickX += pos.x
-          middleClickY += pos.y
-        }
-      }
-      middleClickX2 = middleClickX
-      middleClickY2 = middleClickY
-      maybeMiddleClick = false
-    } else {
-      middleClickX2 = 0.0
-      middleClickY2 = 0.0
-      for i in 0..<fingersQua {
-        if let fingerData = data?.advanced(by: Int(i)).pointee {
-          let pos = fingerData.normalized.pos
-          middleClickX2 += pos.x
-          middleClickY2 += pos.y
-        }
+  let isCurrentFingersQuaAllowed = allowMoreFingers ? nFingers >= fingersQua : nFingers == fingersQua
+  if !isCurrentFingersQuaAllowed { return 0 }
+
+  if maybeMiddleClick {
+    middleClickX = 0.0
+    middleClickY = 0.0
+  } else {
+    middleClickX2 = 0.0
+    middleClickY2 = 0.0
+  }
+
+  for i in 0..<fingersQua {
+    if let fingerData = data?.advanced(by: i).pointee {
+      let pos = fingerData.normalized.pos
+      if maybeMiddleClick {
+        middleClickX += pos.x
+        middleClickY += pos.y
+      } else {
+        middleClickX2 += pos.x
+        middleClickY2 += pos.y
       }
     }
+  }
+
+  if maybeMiddleClick {
+    middleClickX2 = middleClickX
+    middleClickY2 = middleClickY
+    maybeMiddleClick = false
   }
 
   return 0
@@ -350,7 +341,7 @@ func isIgnoredAppBundle() -> Bool {
     }
   }
 
-public func emulateMiddleClick() {
+func emulateMiddleClick() {
   // get the current pointer location
   let location = CGEvent(source: nil)?.location ?? .zero
   let buttonType: CGMouseButton = .center
@@ -359,11 +350,7 @@ public func emulateMiddleClick() {
   postMouseEvent(type: .otherMouseUp, button: buttonType, location: location)
 }
 
-func getFocusedApp() -> NSRunningApplication? {
-  return NSWorkspace.shared.frontmostApplication
-}
-
-public func postMouseEvent(
+func postMouseEvent(
   type: CGEventType, button: CGMouseButton, location: CGPoint
 ) {
   if let event = CGEvent(
@@ -372,6 +359,10 @@ public func postMouseEvent(
   {
     event.post(tap: .cghidEventTap)
   }
+}
+
+func getFocusedApp() -> NSRunningApplication? {
+  return NSWorkspace.shared.frontmostApplication
 }
 
 @MainActor let multitouchDeviceAddedCallback: IOServiceMatchingCallback = {
