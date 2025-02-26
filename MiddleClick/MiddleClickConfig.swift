@@ -7,25 +7,25 @@ final class Config: ConfigCore {
     Self.options.cacheAll = true
   }
 
-  @UserDefault("fingers", default: 3)
-  var minimumFingers
+  @UserDefault("fingers")
+  var minimumFingers = 3
 
-  @UserDefault("allowMoreFingers", default: false)
-  var allowMoreFingers
+  @UserDefault("allowMoreFingers")
+  var allowMoreFingers = false
 
-  @UserDefault("maxDistanceDelta", default: 0.05)
-  var maxDistanceDelta: Float
+  @UserDefault("maxDistanceDelta")
+  var maxDistanceDelta: Float = 0.05
 
   /// In milliseconds
-  @UserDefault("maxTimeDelta", default: 300, transformGet: { $0 / 1000 })
-  var maxTimeDelta: Double
+  @UserDefault("maxTimeDelta", transformGet: { $0 / 1000 })
+  var maxTimeDelta: Double = 300
 
   /// inverted "Tap to Click" flag
-  @UserDefault("needClick", default: getIsSystemTapToClickDisabled)
-  var needClick
+  @UserDefault("needClick")
+  var needClick = getIsSystemTapToClickDisabled
 
-  @UserDefault("ignoredAppBundles", default: Set<String>())
-  var ignoredAppBundles
+  @UserDefault("ignoredAppBundles")
+  var ignoredAppBundles = Set<String>()
 }
 
 func getIsSystemTapToClickDisabled() -> Bool {

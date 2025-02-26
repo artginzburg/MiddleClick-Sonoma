@@ -112,8 +112,8 @@ internal enum UserDefaultGetter<T: DefaultsSerializable> {
  # Usage
  - Define your keys (without `static`):
    ```swift
-   @UserDefault("fingers", default: 3)
-   var minimumFingers
+   @UserDefault("fingers") // <- key
+   var minimumFingers = 3 // <- default value
    ```
  - Use them via `.shared`:
    ```swift
@@ -178,8 +178,8 @@ struct UserDefaultOptions: OptionSetInt {
   private var _cachedValue: T.T?
 
   init(
+    wrappedValue defaultValue: T,
     _ key: String,
-    default defaultValue: T,
     transformGet: @escaping (T) -> T = { $0 },
     options: UserDefaultOptions = []
   ) {
@@ -193,8 +193,8 @@ struct UserDefaultOptions: OptionSetInt {
     DefaultsInitStorage.preRegister(key, defaultValue)
   }
   init(
+    wrappedValue lazyGetter: @escaping () -> T,
     _ key: String,
-    default lazyGetter: @escaping () -> T,
     transformGet: @escaping (T) -> T = { $0 },
     options: UserDefaultOptions = []
   ) {
