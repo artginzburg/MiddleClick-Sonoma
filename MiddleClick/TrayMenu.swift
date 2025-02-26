@@ -1,20 +1,16 @@
 import Cocoa
 
-@MainActor class TrayMenu: NSObject, NSApplicationDelegate {
-  let myController: Controller
-  var infoItem: NSMenuItem!
-  var tapToClickItem: NSMenuItem!
-  var accessibilityPermissionStatusItem: NSMenuItem!
-  var accessibilityPermissionActionItem: NSMenuItem!
-  var statusItem: NSStatusItem!
-  var ignoredAppItem: NSMenuItem!
+@MainActor final class TrayMenu: NSObject, NSApplicationDelegate {
+  private let myController: Controller
+  private var infoItem, tapToClickItem, accessibilityPermissionStatusItem, accessibilityPermissionActionItem, ignoredAppItem: NSMenuItem!
+  private var statusItem: NSStatusItem!
 
   init(controller: Controller) {
     myController = controller
     super.init()
   }
 
-  @objc func initAccessibilityPermissionStatus(menu: NSMenu) {
+  @objc private func initAccessibilityPermissionStatus(menu: NSMenu) {
     let hasAccessibilityPermission = SystemPermissions.detectAccessibilityIsGranted(forcePrompt: true)
 
     updateAccessibilityPermissionStatus(
@@ -32,19 +28,19 @@ import Cocoa
     }
   }
 
-  func updateAccessibilityPermissionStatus(menu: NSMenu, hasAccessibilityPermission: Bool) {
+  private func updateAccessibilityPermissionStatus(menu: NSMenu, hasAccessibilityPermission: Bool) {
     statusItem.button?.appearsDisabled = !hasAccessibilityPermission
     accessibilityPermissionStatusItem.isHidden = hasAccessibilityPermission
     accessibilityPermissionActionItem.isHidden = hasAccessibilityPermission
   }
 
-  @objc func openWebsite(sender: Any) {
+  @objc private func openWebsite(sender: Any) {
     if let url = URL(string: "https://github.com/artginzburg/MiddleClick-Sonoma") {
       NSWorkspace.shared.open(url)
     }
   }
 
-  @objc func openAccessibilitySettings(sender: Any) {
+  @objc private func openAccessibilitySettings(sender: Any) {
     let isPreCatalina =
       (floor(NSAppKitVersion.current.rawValue) < NSAppKitVersion.macOS10_15.rawValue)
     if isPreCatalina {
@@ -66,17 +62,17 @@ import Cocoa
     }
   }
 
-  @objc func toggleTapToClick(sender: NSButton) {
+  @objc private func toggleTapToClick(sender: NSButton) {
     myController.setMode(sender.state == .on)
     setChecks()
   }
 
-  @objc func resetTapToClick(sender: NSButton) {
+  @objc private func resetTapToClick(sender: NSButton) {
     myController.resetClickMode()
     setChecks()
   }
 
-  func setChecks() {
+  private func setChecks() {
     let clickMode = myController.getClickMode()
     let clickModeInfo = "Click" + (clickMode ? "" : " or Tap")
 
@@ -88,11 +84,11 @@ import Cocoa
     tapToClickItem.state = clickMode ? .off : .on
   }
 
-  @objc func actionQuit(sender: Any) {
+  @objc private func actionQuit(sender: Any) {
     NSApp.terminate(sender)
   }
 
-  func createMenu() -> NSMenu {
+  private func createMenu() -> NSMenu {
     let menu = NSMenu()
     menu.delegate = self
 
@@ -136,7 +132,7 @@ import Cocoa
     return menu
   }
 
-  func createMenuAccessibilityPermissionItems(menu: NSMenu) {
+  private func createMenuAccessibilityPermissionItems(menu: NSMenu) {
     accessibilityPermissionStatusItem = menu.addItem(
       withTitle: "Missing Accessibility permission", action: nil, keyEquivalent: "")
     accessibilityPermissionActionItem = menu.addItem(
@@ -145,7 +141,7 @@ import Cocoa
     menu.addItem(NSMenuItem.separator())
   }
 
-  func getAppName() -> String {
+  private func getAppName() -> String {
     return ProcessInfo.processInfo.processName
   }
 
@@ -182,14 +178,14 @@ extension TrayMenu: NSMenuDelegate {
     updateIgnoredAppItem()
   }
 
-  func updateIgnoredAppItem() {
+  private func updateIgnoredAppItem() {
     if let focusedAppName = getFocusedApp()?.localizedName {
       ignoredAppItem.title = "Ignore " + focusedAppName
       ignoredAppItem.state = isIgnoredAppBundle() ? .on : .off
     }
   }
 
-  @objc func ignoreApp(sender: Any) {
+  @objc private func ignoreApp(sender: Any) {
     guard let focusedBundleID = getFocusedApp()?.bundleIdentifier else { return }
 
     ignoredAppBundlesCache.formSymmetricDifference([focusedBundleID])

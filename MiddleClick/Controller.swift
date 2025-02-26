@@ -7,32 +7,32 @@ import IOKit.hid
 // MARK: Globals
 /// stored locally, since accessing the cache is more CPU-expensive than a local variable
 @MainActor private var needToClick = Config.shared.needClick
-@MainActor public var threeDown = false
-@MainActor public var wasThreeDown = false
-@MainActor public var maybeMiddleClick = false
-@MainActor public var touchStartTime: Date?
-@MainActor var naturalMiddleClickLastTime: Date?
-@MainActor public var middleClickX: Float = 0.0
-@MainActor public var middleClickY: Float = 0.0
-@MainActor public var middleClickX2: Float = 0.0
-@MainActor public var middleClickY2: Float = 0.0
+@MainActor private var threeDown = false
+@MainActor private var wasThreeDown = false
+@MainActor private var maybeMiddleClick = false
+@MainActor private var touchStartTime: Date?
+@MainActor private var naturalMiddleClickLastTime: Date?
+@MainActor private var middleClickX: Float = 0.0
+@MainActor private var middleClickY: Float = 0.0
+@MainActor private var middleClickX2: Float = 0.0
+@MainActor private var middleClickY2: Float = 0.0
 
-@MainActor public let fingersQua = Config.shared.minimumFingers
-@MainActor public let maxDistanceDelta = Config.shared.maxDistanceDelta
-@MainActor public let maxTimeDelta = Config.shared.maxTimeDelta
-@MainActor public let allowMoreFingers = Config.shared.allowMoreFingers
+@MainActor private let fingersQua = Config.shared.minimumFingers
+@MainActor private let maxDistanceDelta = Config.shared.maxDistanceDelta
+@MainActor private let maxTimeDelta = Config.shared.maxTimeDelta
+@MainActor private let allowMoreFingers = Config.shared.allowMoreFingers
 
-@MainActor class Controller: NSObject {
-  weak var restartTimer: Timer?
-  var currentEventTap: CFMachPort?
-  var currentRunLoopSource: CFRunLoopSource?
+@MainActor final class Controller: NSObject {
+  private weak var restartTimer: Timer?
+  private var currentEventTap: CFMachPort?
+  private var currentRunLoopSource: CFRunLoopSource?
 
-  static let fastRestart = false
-  static let wakeRestartTimeout: TimeInterval = fastRestart ? 2 : 10
+  private static let fastRestart = false
+  private static let wakeRestartTimeout: TimeInterval = fastRestart ? 2 : 10
 
-  static let immediateRestart = false
+  private static let immediateRestart = false
 
-  var currentDeviceList: [MTDevice] = []
+  private var currentDeviceList: [MTDevice] = []
 
   func start() {
     NSLog("Starting all listeners...")
@@ -106,7 +106,7 @@ import IOKit.hid
 
   /// Callback for system wake up.
   /// Can be tested by entering `pmset sleepnow` in the Terminal
-  @objc func receiveWakeNote(_ note: Notification) {
+  @objc private func receiveWakeNote(_ note: Notification) {
     NSLog("System woke up, restarting in \(Controller.wakeRestartTimeout)...")
     scheduleRestart(Controller.wakeRestartTimeout)
   }
@@ -126,25 +126,25 @@ import IOKit.hid
     needToClick = getIsSystemTapToClickDisabled()
   }
 
-  func restartListeners() {
+  private func restartListeners() {
     NSLog("Restarting app functionality...")
     stopUnstableListeners()
     startUnstableListeners()
   }
 
-  func startUnstableListeners() {
+  private func startUnstableListeners() {
     NSLog("Starting unstable listeners...")
     registerTouchCallback()
     registerMouseCallback()
   }
 
-  func stopUnstableListeners() {
+  private func stopUnstableListeners() {
     NSLog("Stopping unstable listeners...")
     unregisterTouchCallback()
     unregisterMouseCallback()
   }
 
-  func registerMouseCallback() {
+  private func registerMouseCallback() {
     let eventMask = CGEventMask.from(.leftMouseDown, .leftMouseUp, .rightMouseDown, .rightMouseUp)
     currentEventTap = CGEvent.tapCreate(
       tap: .cghidEventTap, place: .headInsertEventTap, options: .defaultTap,
@@ -179,20 +179,20 @@ import IOKit.hid
     currentEventTap = nil
   }
 
-  func registerTouchCallback() {
+  private func registerTouchCallback() {
     currentDeviceList =
       (MTDeviceCreateList()?.takeUnretainedValue() as? [MTDevice]) ?? []
 
     currentDeviceList.forEach { registerMTDeviceCallback($0, touchCallback) }
   }
 
-  func unregisterTouchCallback() {
+  private func unregisterTouchCallback() {
     currentDeviceList.forEach { unregisterMTDeviceCallback($0, touchCallback) }
     currentDeviceList.removeAll()
   }
 }
 
-@MainActor let mouseCallback: CGEventTapCallBack = {
+@MainActor private let mouseCallback: CGEventTapCallBack = {
   proxy, type, event, refcon in
   if isIgnoredAppBundle() { return Unmanaged.passUnretained(event) }
 
@@ -213,7 +213,7 @@ import IOKit.hid
   return Unmanaged.passUnretained(event)
 }
 
-@MainActor func shouldPreventEmulation() -> Bool {
+@MainActor private func shouldPreventEmulation() -> Bool {
   guard let naturalLastTime = naturalMiddleClickLastTime else { return false }
 
   let elapsedTimeSinceNatural = -naturalLastTime.timeIntervalSinceNow
@@ -228,7 +228,7 @@ import IOKit.hid
   return ignoredAppBundlesCache.contains(bundleId)
 }
 
-@MainActor func handleTouchEnd() {
+@MainActor private func handleTouchEnd() {
   guard let startTime = touchStartTime else { return }
 
   let elapsedTime = -startTime.timeIntervalSinceNow
@@ -244,7 +244,7 @@ import IOKit.hid
   }
 }
 
-@MainActor let touchCallback: MTContactCallbackFunction = {
+@MainActor private let touchCallback: MTContactCallbackFunction = {
   device, data, nFingers, timestamp, frame in
   if isIgnoredAppBundle() { return 0 }
 
@@ -314,7 +314,7 @@ import IOKit.hid
 }
 
 /// TODO? is this restart necessary? I don't see any changes when it's removed, but keep in mind I've only spent 5 minutes testing different app and system states
-@MainActor public let displayReconfigurationCallback:
+@MainActor private let displayReconfigurationCallback:
   CGDisplayReconfigurationCallBack = { display, flags, userData in
     if flags.contains(.setModeFlag) || flags.contains(.addFlag)
       || flags.contains(.removeFlag) || flags.contains(.disabledFlag)
@@ -326,7 +326,7 @@ import IOKit.hid
     }
   }
 
-func emulateMiddleClick() {
+private func emulateMiddleClick() {
   // get the current pointer location
   let location = CGEvent(source: nil)?.location ?? .zero
   let buttonType: CGMouseButton = .center
@@ -335,7 +335,7 @@ func emulateMiddleClick() {
   postMouseEvent(type: .otherMouseUp, button: buttonType, location: location)
 }
 
-func postMouseEvent(
+private func postMouseEvent(
   type: CGEventType, button: CGMouseButton, location: CGPoint
 ) {
   if let event = CGEvent(
@@ -350,7 +350,7 @@ func getFocusedApp() -> NSRunningApplication? {
   return NSWorkspace.shared.frontmostApplication
 }
 
-@MainActor let multitouchDeviceAddedCallback: IOServiceMatchingCallback = {
+@MainActor private let multitouchDeviceAddedCallback: IOServiceMatchingCallback = {
   (userData, iterator) in
   while case let ioService = IOIteratorNext(iterator), ioService != 0 {
     do { IOObjectRelease(ioService) }
@@ -362,14 +362,14 @@ func getFocusedApp() -> NSRunningApplication? {
   controller.scheduleRestart(2)
 }
 
-func registerMTDeviceCallback(
+private func registerMTDeviceCallback(
   _ device: MTDevice, _ callback: @escaping MTContactCallbackFunction
 ) {
   MTRegisterContactFrameCallback(device, callback)
   MTDeviceStart(device, 0)
 }
 
-func unregisterMTDeviceCallback(
+private func unregisterMTDeviceCallback(
   _ device: MTDevice, _ callback: @escaping MTContactCallbackFunction
 ) {
   MTUnregisterContactFrameCallback(device, callback)
