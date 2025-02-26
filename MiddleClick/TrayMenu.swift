@@ -80,8 +80,8 @@ import Cocoa
     let clickMode = myController.getClickMode()
     let clickModeInfo = "Click" + (clickMode ? "" : " or Tap")
 
-    let fingersQua = UserDefaults.standard.integer(forKey: MiddleClickConfig.fingersNumKey)
-    let allowMoreFingers = UserDefaults.standard.bool(forKey: MiddleClickConfig.allowMoreFingersKey)
+    let fingersQua = Config.shared.minimumFingers
+    let allowMoreFingers = Config.shared.allowMoreFingers
     let fingersInfo = " with \(fingersQua)\(allowMoreFingers ? "+" : "") Fingers"
 
     infoItem.title = clickModeInfo + fingersInfo
@@ -190,21 +190,10 @@ extension TrayMenu: NSMenuDelegate {
   }
 
   @objc func ignoreApp(sender: Any) {
-    var ignoredAppBundles = UserDefaults.standard.stringArray(
-      forKey: MiddleClickConfig.ignoredAppBundlesKey
-    ) ?? MiddleClickConfig.ignoredAppBundlesDefault
-
     guard let focusedBundleID = getFocusedApp()?.bundleIdentifier else { return }
 
-    if ignoredAppBundles.contains(focusedBundleID) {
-      ignoredAppBundles.removeAll { bundleID in
-        return bundleID == focusedBundleID
-      }
-    } else {
-      ignoredAppBundles.append(focusedBundleID)
-    }
+    ignoredAppBundlesCache.formSymmetricDifference([focusedBundleID])
 
-    UserDefaults.standard.set(ignoredAppBundles, forKey: MiddleClickConfig.ignoredAppBundlesKey)
-    refreshIgnoredAppBundles()
+    Config.shared.ignoredAppBundles = ignoredAppBundlesCache
   }
 }

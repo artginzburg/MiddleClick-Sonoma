@@ -5,8 +5,8 @@ import IOKit
 import IOKit.hid
 
 // MARK: Globals
-/// inverted Tap to Click flag
-@MainActor public var needToClick = MiddleClickConfig.needClickDefault
+/// stored locally, since accessing the cache is more CPU-expensive than a local variable
+@MainActor private var needToClick = Config.shared.needClick
 @MainActor public var threeDown = false
 @MainActor public var wasThreeDown = false
 @MainActor public var maybeMiddleClick = false
@@ -16,15 +16,11 @@ import IOKit.hid
 @MainActor public var middleClickY: Float = 0.0
 @MainActor public var middleClickX2: Float = 0.0
 @MainActor public var middleClickY2: Float = 0.0
-@MainActor public var fingersQua = UserDefaults.standard.integer(
-  forKey: MiddleClickConfig.fingersNumKey)
-public let maxDistanceDelta = UserDefaults.standard.float(
-  forKey: MiddleClickConfig.maxDistanceDeltaKey)
-public let maxTimeDelta =
-UserDefaults.standard
-  .double(forKey: MiddleClickConfig.maxTimeDeltaMsKey) / 1000.0
-@MainActor public var allowMoreFingers = UserDefaults.standard.bool(
-  forKey: MiddleClickConfig.allowMoreFingersKey)
+
+@MainActor public let fingersQua = Config.shared.minimumFingers
+@MainActor public let maxDistanceDelta = Config.shared.maxDistanceDelta
+@MainActor public let maxTimeDelta = Config.shared.maxTimeDelta
+@MainActor public let allowMoreFingers = Config.shared.allowMoreFingers
 
 @MainActor class Controller: NSObject {
   weak var restartTimer: Timer?
@@ -40,10 +36,6 @@ UserDefaults.standard
 
   func start() {
     NSLog("Starting all listeners...")
-
-    needToClick =
-      UserDefaults.standard.value(forKey: "needClick") as? Bool
-      ?? getIsSystemTapToClickDisabled()
 
     registerTouchCallback()
 
@@ -124,12 +116,13 @@ UserDefaults.standard
   }
 
   func setMode(_ click: Bool) {
-    UserDefaults.standard.set(click, forKey: MiddleClickConfig.needClickKey)
+    Config.shared.needClick = click
     needToClick = click
   }
 
+///  TODO: reduce this to one or two lines. After deletion, the value should be automatically set to the lazyGetter()
   func resetClickMode() {
-    UserDefaults.standard.removeObject(forKey: MiddleClickConfig.needClickKey)
+    Config.shared.$needClick.delete()
     needToClick = getIsSystemTapToClickDisabled()
   }
 
@@ -197,11 +190,6 @@ UserDefaults.standard
     currentDeviceList.forEach { unregisterMTDeviceCallback($0, touchCallback) }
     currentDeviceList.removeAll()
   }
-
-  func getIsSystemTapToClickDisabled() -> Bool {
-    let clickingEnabled = CFPreferencesCopyAppValue("Clicking" as CFString, "com.apple.driver.AppleBluetoothMultitouch.trackpad" as CFString) as? Int ?? 1
-    return clickingEnabled == 0
-  }
 }
 
 @MainActor let mouseCallback: CGEventTapCallBack = {
@@ -232,15 +220,12 @@ UserDefaults.standard
   return elapsedTimeSinceNatural <= maxTimeDelta * 0.75 // fine-tuned multiplier
 }
 
-@MainActor var ignoredAppBundlesCache: Set<String>?
-@MainActor func refreshIgnoredAppBundles() {
-  ignoredAppBundlesCache = Set(UserDefaults.standard.stringArray(forKey: MiddleClickConfig.ignoredAppBundlesKey) ?? [])
-}
+@MainActor var ignoredAppBundlesCache = Config.shared.ignoredAppBundles
 
 /// Caveat: Depends on getFocusedApp(), but the cursor may actually be above a window that is not currently focused, in which case a middle-click will pass through to an "Ignored" application.
 @MainActor func isIgnoredAppBundle() -> Bool {
   guard let bundleId = getFocusedApp()?.bundleIdentifier else { return false }
-  return ignoredAppBundlesCache?.contains(bundleId) ?? false
+  return ignoredAppBundlesCache.contains(bundleId)
 }
 
 @MainActor func handleTouchEnd() {

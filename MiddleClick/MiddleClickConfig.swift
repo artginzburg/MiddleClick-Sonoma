@@ -1,23 +1,34 @@
 import Foundation
 
-struct MiddleClickConfig {
-  static let fingersNumKey = "fingers"
-  static let fingersNumDefault: Int8 = 3
+let kCGMouseButtonCenter: Int64 = 2
 
-  static let allowMoreFingersKey = "allowMoreFingers"
-  static let allowMoreFingersDefault = false
+final class Config: ConfigCore {
+  required init() {
+    Self.options.cacheAll = true
+  }
 
-  static let maxDistanceDeltaKey = "maxDistanceDelta"
-  static let maxDistanceDeltaDefault: Float = 0.05
+  @UserDefault("fingers", default: 3)
+  var minimumFingers
 
-  static let maxTimeDeltaMsKey = "maxTimeDelta"
-  static let maxTimeDeltaMsDefault: Int32 = 300
+  @UserDefault("allowMoreFingers", default: false)
+  var allowMoreFingers
 
-  static let needClickKey = "needClick"
-  static let needClickDefault = false
+  @UserDefault("maxDistanceDelta", default: 0.05)
+  var maxDistanceDelta: Float
 
-  static let ignoredAppBundlesKey = "ignoredAppBundles"
-  static let ignoredAppBundlesDefault: [String] = []
+  /// In milliseconds
+  @UserDefault("maxTimeDelta", default: 300, transformGet: { $0 / 1000 })
+  var maxTimeDelta: Double
+
+  /// inverted "Tap to Click" flag
+  @UserDefault("needClick", default: getIsSystemTapToClickDisabled)
+  var needClick
+
+  @UserDefault("ignoredAppBundles", default: Set<String>())
+  var ignoredAppBundles
 }
 
-let kCGMouseButtonCenter: Int64 = 2
+func getIsSystemTapToClickDisabled() -> Bool {
+  let clickingEnabled = CFPreferencesCopyAppValue("Clicking" as CFString, "com.apple.driver.AppleBluetoothMultitouch.trackpad" as CFString) as? Int ?? 1
+  return clickingEnabled == 0
+}
