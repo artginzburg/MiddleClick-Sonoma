@@ -34,6 +34,12 @@ import IOKit.hid
 
   private var currentDeviceList: [MTDevice] = []
 
+  override init() {
+    Config.shared.$needClick.onSet {
+      needToClick = $0
+    }
+  }
+
   func start() {
     NSLog("Starting all listeners...")
 
@@ -117,7 +123,6 @@ import IOKit.hid
 
   func setMode(_ click: Bool) {
     Config.shared.needClick = click
-    needToClick = click
   }
 
 ///  TODO: reduce this to one or two lines. After deletion, the value should be automatically set to the lazyGetter()
