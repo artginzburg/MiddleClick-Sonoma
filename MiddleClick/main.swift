@@ -2,10 +2,9 @@ import Cocoa
 
 private let app = NSApplication.shared
 
-private let con = Controller()
-con.start()
+Controller().start()
 
-private let menu = TrayMenu(controller: con)
+private let menu = TrayMenu()
 app.delegate = menu
 
 app.run()

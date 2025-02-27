@@ -208,16 +208,21 @@ struct UserDefaultOptions: OptionSetInt {
     self.lazyGetter = lazyGetter
   }
 
+  fileprivate func reset() {
+    let newValue = getCurrentValue()
+    onSet?(newValue)
+    if shouldCache {
+      _cachedValue = newValue as? T.T
+    }
+  }
+
   private var shouldCache: Bool { options.contains(.cache) || GlobalDefaultsOptions.cacheAll }
 
   public var wrappedValue: T {
     get {
       guard _cachedValue == nil else { return _cachedValue as! T }
 
-      let isUndefined = lazyGetter != nil && UserDefaults.standard.object(forKey: key) == nil
-      let value = isUndefined ? lazyGetter!() : getter.getFunc(key) as! T
-
-      let result = transformGet(value)
+      let result = getCurrentValue()
 
       if shouldCache {
         _cachedValue = result as? T.T
@@ -237,6 +242,13 @@ struct UserDefaultOptions: OptionSetInt {
   public var projectedValue: UserDefaultWrapper<T> {
     UserDefaultWrapper(self)
   }
+
+  private func getCurrentValue() -> T {
+    let isUndefined = lazyGetter != nil && UserDefaults.standard.object(forKey: key) == nil
+    let value = isUndefined ? lazyGetter!() : getter.getFunc(key) as! T
+
+    return transformGet(value)
+  }
 }
 
 public class UserDefaultWrapper<T: DefaultsSerializable> {
@@ -248,8 +260,9 @@ public class UserDefaultWrapper<T: DefaultsSerializable> {
   @MainActor public func onSet(_ onSet: @escaping (T) -> Void) {
     userDefault.onSet = onSet
   }
-  public func delete() {
+  @MainActor public func delete(reset: Bool = true) {
     UserDefaults.standard.removeObject(forKey: userDefault.key)
+    if reset { userDefault.reset() }
   }
 }
 

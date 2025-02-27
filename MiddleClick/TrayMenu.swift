@@ -1,14 +1,8 @@
 import Cocoa
 
 @MainActor final class TrayMenu: NSObject, NSApplicationDelegate {
-  private let myController: Controller
   private var infoItem, tapToClickItem, accessibilityPermissionStatusItem, accessibilityPermissionActionItem, ignoredAppItem: NSMenuItem!
   private var statusItem: NSStatusItem!
-
-  init(controller: Controller) {
-    myController = controller
-    super.init()
-  }
 
   @objc private func initAccessibilityPermissionStatus(menu: NSMenu) {
     let hasAccessibilityPermission = SystemPermissions.detectAccessibilityIsGranted(forcePrompt: true)
@@ -63,17 +57,17 @@ import Cocoa
   }
 
   @objc private func toggleTapToClick(sender: NSButton) {
-    myController.setMode(sender.state == .on)
+    Config.shared.needClick = sender.state == .on
     setChecks()
   }
 
   @objc private func resetTapToClick(sender: NSButton) {
-    myController.resetClickMode()
+    Config.shared.$needClick.delete()
     setChecks()
   }
 
   private func setChecks() {
-    let clickMode = myController.getClickMode()
+    let clickMode = Config.shared.needClick
     let clickModeInfo = "Click" + (clickMode ? "" : " or Tap")
 
     let fingersQua = Config.shared.minimumFingers

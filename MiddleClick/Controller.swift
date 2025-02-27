@@ -117,20 +117,6 @@ import IOKit.hid
     scheduleRestart(Controller.wakeRestartTimeout)
   }
 
-  func getClickMode() -> Bool {
-    return needToClick
-  }
-
-  func setMode(_ click: Bool) {
-    Config.shared.needClick = click
-  }
-
-///  TODO: reduce this to one or two lines. After deletion, the value should be automatically set to the lazyGetter()
-  func resetClickMode() {
-    Config.shared.$needClick.delete()
-    needToClick = getIsSystemTapToClickDisabled()
-  }
-
   private func restartListeners() {
     NSLog("Restarting app functionality...")
     stopUnstableListeners()
