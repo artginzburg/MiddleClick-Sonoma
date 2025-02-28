@@ -12,6 +12,7 @@
 		75A6B66C0FEE87AB0071FAC0 /* MultitouchSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 75A6B66B0FEE87AB0071FAC0 /* MultitouchSupport.framework */; };
 		75A6B69D0FEE90530071FAC0 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 75A6B69C0FEE90530071FAC0 /* ApplicationServices.framework */; };
 		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; settings = {ATTRIBUTES = (Required, ); }; };
+		973C1DA72D71C3B7004D9A84 /* TouchHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973C1DA62D71C3B7004D9A84 /* TouchHandler.swift */; };
 		97631B662D6D24B1006EEE50 /* ConfigCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97631B652D6D24B1006EEE50 /* ConfigCore.swift */; };
 		9773F1A52D53ACA600EB4372 /* TrayMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9773F1A42D53ACA600EB4372 /* TrayMenu.swift */; };
 		9773F1A72D53E6C500EB4372 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9773F1A62D53E6C500EB4372 /* main.swift */; };
@@ -33,6 +34,7 @@
 		75A6B69C0FEE90530071FAC0 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
 		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MiddleClick/Info.plist; sourceTree = "<group>"; };
 		8D1107320486CEB800E47090 /* MiddleClick.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MiddleClick.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		973C1DA62D71C3B7004D9A84 /* TouchHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TouchHandler.swift; path = MiddleClick/TouchHandler.swift; sourceTree = "<group>"; };
 		97631B652D6D24B1006EEE50 /* ConfigCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ConfigCore.swift; path = MiddleClick/ConfigCore.swift; sourceTree = "<group>"; };
 		9773F1A42D53ACA600EB4372 /* TrayMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TrayMenu.swift; path = MiddleClick/TrayMenu.swift; sourceTree = "<group>"; };
 		9773F1A62D53E6C500EB4372 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = main.swift; path = MiddleClick/main.swift; sourceTree = "<group>"; };
@@ -60,6 +62,7 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				973C1DA62D71C3B7004D9A84 /* TouchHandler.swift */,
 				9779318E2D68E1DC00355E50 /* SystemPermissions.swift */,
 				9773F1A42D53ACA600EB4372 /* TrayMenu.swift */,
 				97631B652D6D24B1006EEE50 /* ConfigCore.swift */,
@@ -214,6 +217,7 @@
 				9773F1AB2D53ED4800EB4372 /* MultitouchAPI.swift in Sources */,
 				9773F1A72D53E6C500EB4372 /* main.swift in Sources */,
 				97921C1B2D52F5A50005EE6F /* MiddleClickConfig.swift in Sources */,
+				973C1DA72D71C3B7004D9A84 /* TouchHandler.swift in Sources */,
 				9779318F2D68E1DC00355E50 /* SystemPermissions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
