@@ -2,7 +2,8 @@ import Cocoa
 
 private let app = NSApplication.shared
 
-Controller().start()
+let controller = Controller()
+controller.start()
 
 private let menu = TrayMenu()
 app.delegate = menu
