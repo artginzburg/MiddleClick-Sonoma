@@ -3,148 +3,68 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 54;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		508EF7C4225FAC4C00353781 /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 508EF7C3225FAC4C00353781 /* Images.xcassets */; };
-		7569F71E1007F64500D9CE54 /* IOKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 7569F71D1007F64500D9CE54 /* IOKit.framework */; };
 		75A6B66C0FEE87AB0071FAC0 /* MultitouchSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 75A6B66B0FEE87AB0071FAC0 /* MultitouchSupport.framework */; };
-		75A6B69D0FEE90530071FAC0 /* ApplicationServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 75A6B69C0FEE90530071FAC0 /* ApplicationServices.framework */; };
-		8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */; settings = {ATTRIBUTES = (Required, ); }; };
-		971AA1C02D737A4C00D920AA /* GlobalState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 971AA1BF2D737A4C00D920AA /* GlobalState.swift */; };
-		971AA1C22D737ABA00D920AA /* AppUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = 971AA1C12D737ABA00D920AA /* AppUtils.swift */; };
-		973C1DA72D71C3B7004D9A84 /* TouchHandler.swift in Sources */ = {isa = PBXBuildFile; fileRef = 973C1DA62D71C3B7004D9A84 /* TouchHandler.swift */; };
-		97631B662D6D24B1006EEE50 /* ConfigCore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97631B652D6D24B1006EEE50 /* ConfigCore.swift */; };
-		9773F1A52D53ACA600EB4372 /* TrayMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9773F1A42D53ACA600EB4372 /* TrayMenu.swift */; };
-		9773F1A72D53E6C500EB4372 /* main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9773F1A62D53E6C500EB4372 /* main.swift */; };
-		9773F1AA2D53ED4800EB4372 /* Controller.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9773F1A82D53ED4800EB4372 /* Controller.swift */; };
-		9773F1AB2D53ED4800EB4372 /* MultitouchAPI.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9773F1A92D53ED4800EB4372 /* MultitouchAPI.swift */; };
-		9779318F2D68E1DC00355E50 /* SystemPermissions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9779318E2D68E1DC00355E50 /* SystemPermissions.swift */; };
-		97921C1B2D52F5A50005EE6F /* MiddleClickConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97921C1A2D52F5A50005EE6F /* MiddleClickConfig.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
-		13E42FB307B3F0F600E4EEF1 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = /System/Library/Frameworks/CoreData.framework; sourceTree = "<absolute>"; };
-		29B97324FDCFA39411CA2CEA /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
-		29B97325FDCFA39411CA2CEA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = /System/Library/Frameworks/Foundation.framework; sourceTree = "<absolute>"; };
-		31B4299324007CB20047D442 /* MiddleClick.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = MiddleClick.entitlements; path = MiddleClick/MiddleClick.entitlements; sourceTree = "<group>"; };
-		508EF7C3225FAC4C00353781 /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = MiddleClick/Images.xcassets; sourceTree = "<group>"; };
-		7569F71D1007F64500D9CE54 /* IOKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = IOKit.framework; path = System/Library/Frameworks/IOKit.framework; sourceTree = SDKROOT; };
 		75A6B66B0FEE87AB0071FAC0 /* MultitouchSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MultitouchSupport.framework; path = /System/Library/PrivateFrameworks/MultitouchSupport.framework; sourceTree = "<absolute>"; };
-		75A6B69C0FEE90530071FAC0 /* ApplicationServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = ApplicationServices.framework; path = /System/Library/Frameworks/ApplicationServices.framework; sourceTree = "<absolute>"; };
-		8D1107310486CEB800E47090 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MiddleClick/Info.plist; sourceTree = "<group>"; };
-		8D1107320486CEB800E47090 /* MiddleClick.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MiddleClick.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		971AA1BF2D737A4C00D920AA /* GlobalState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = GlobalState.swift; path = MiddleClick/GlobalState.swift; sourceTree = "<group>"; };
-		971AA1C12D737ABA00D920AA /* AppUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppUtils.swift; path = MiddleClick/AppUtils.swift; sourceTree = "<group>"; };
-		973C1DA62D71C3B7004D9A84 /* TouchHandler.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TouchHandler.swift; path = MiddleClick/TouchHandler.swift; sourceTree = "<group>"; };
-		97631B652D6D24B1006EEE50 /* ConfigCore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ConfigCore.swift; path = MiddleClick/ConfigCore.swift; sourceTree = "<group>"; };
-		9773F1A42D53ACA600EB4372 /* TrayMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = TrayMenu.swift; path = MiddleClick/TrayMenu.swift; sourceTree = "<group>"; };
-		9773F1A62D53E6C500EB4372 /* main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = main.swift; path = MiddleClick/main.swift; sourceTree = "<group>"; };
-		9773F1A82D53ED4800EB4372 /* Controller.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Controller.swift; path = MiddleClick/Controller.swift; sourceTree = "<group>"; };
-		9773F1A92D53ED4800EB4372 /* MultitouchAPI.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MultitouchAPI.swift; path = MiddleClick/MultitouchAPI.swift; sourceTree = "<group>"; };
-		9779318E2D68E1DC00355E50 /* SystemPermissions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = SystemPermissions.swift; path = MiddleClick/SystemPermissions.swift; sourceTree = "<group>"; };
-		97921C1A2D52F5A50005EE6F /* MiddleClickConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = MiddleClickConfig.swift; path = MiddleClick/MiddleClickConfig.swift; sourceTree = "<group>"; };
+		976CE1432D73BA00002D9FBB /* MiddleClick.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MiddleClick.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		976CE17A2D73BB6D002D9FBB /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 8D1107260486CEB800E47090 /* MiddleClick */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		976CE16D2D73BAFC002D9FBB /* MiddleClick */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (976CE17A2D73BB6D002D9FBB /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); path = MiddleClick; sourceTree = "<group>"; };
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		8D11072E0486CEB800E47090 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				8D11072F0486CEB800E47090 /* Cocoa.framework in Frameworks */,
 				75A6B66C0FEE87AB0071FAC0 /* MultitouchSupport.framework in Frameworks */,
-				75A6B69D0FEE90530071FAC0 /* ApplicationServices.framework in Frameworks */,
-				7569F71E1007F64500D9CE54 /* IOKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		080E96DDFE201D6D7F000001 /* Classes */ = {
-			isa = PBXGroup;
-			children = (
-				973C1DA62D71C3B7004D9A84 /* TouchHandler.swift */,
-				9779318E2D68E1DC00355E50 /* SystemPermissions.swift */,
-				9773F1A42D53ACA600EB4372 /* TrayMenu.swift */,
-				97631B652D6D24B1006EEE50 /* ConfigCore.swift */,
-				971AA1BF2D737A4C00D920AA /* GlobalState.swift */,
-				971AA1C12D737ABA00D920AA /* AppUtils.swift */,
-			);
-			name = Classes;
-			sourceTree = "<group>";
-		};
-		1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				1058C7A1FEA54F0111CA2CBB /* Cocoa.framework */,
-			);
-			name = "Linked Frameworks";
-			sourceTree = "<group>";
-		};
-		1058C7A2FEA54F0111CA2CBB /* Other Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				29B97324FDCFA39411CA2CEA /* AppKit.framework */,
-				13E42FB307B3F0F600E4EEF1 /* CoreData.framework */,
-				29B97325FDCFA39411CA2CEA /* Foundation.framework */,
-			);
-			name = "Other Frameworks";
-			sourceTree = "<group>";
-		};
-		19C28FACFE9D520D11CA2CBB /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				8D1107320486CEB800E47090 /* MiddleClick.app */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		29B97314FDCFA39411CA2CEA /* test */ = {
 			isa = PBXGroup;
 			children = (
-				31B4299324007CB20047D442 /* MiddleClick.entitlements */,
-				080E96DDFE201D6D7F000001 /* Classes */,
-				29B97315FDCFA39411CA2CEA /* Other Sources */,
-				29B97317FDCFA39411CA2CEA /* Resources */,
+				976CE16D2D73BAFC002D9FBB /* MiddleClick */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
-				19C28FACFE9D520D11CA2CBB /* Products */,
+				976CE1442D73BA00002D9FBB /* Products */,
 			);
 			name = test;
-			sourceTree = "<group>";
-		};
-		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
-			isa = PBXGroup;
-			children = (
-				9773F1A82D53ED4800EB4372 /* Controller.swift */,
-				9773F1A92D53ED4800EB4372 /* MultitouchAPI.swift */,
-				9773F1A62D53E6C500EB4372 /* main.swift */,
-				97921C1A2D52F5A50005EE6F /* MiddleClickConfig.swift */,
-			);
-			name = "Other Sources";
-			sourceTree = "<group>";
-		};
-		29B97317FDCFA39411CA2CEA /* Resources */ = {
-			isa = PBXGroup;
-			children = (
-				508EF7C3225FAC4C00353781 /* Images.xcassets */,
-				8D1107310486CEB800E47090 /* Info.plist */,
-			);
-			name = Resources;
 			sourceTree = "<group>";
 		};
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				7569F71D1007F64500D9CE54 /* IOKit.framework */,
-				75A6B69C0FEE90530071FAC0 /* ApplicationServices.framework */,
 				75A6B66B0FEE87AB0071FAC0 /* MultitouchSupport.framework */,
-				1058C7A0FEA54F0111CA2CBB /* Linked Frameworks */,
-				1058C7A2FEA54F0111CA2CBB /* Other Frameworks */,
 			);
 			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		976CE1442D73BA00002D9FBB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				976CE1432D73BA00002D9FBB /* MiddleClick.app */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -162,10 +82,13 @@
 			);
 			dependencies = (
 			);
+			fileSystemSynchronizedGroups = (
+				976CE16D2D73BAFC002D9FBB /* MiddleClick */,
+			);
 			name = MiddleClick;
 			productInstallPath = "$(HOME)/Applications";
 			productName = test;
-			productReference = 8D1107320486CEB800E47090 /* MiddleClick.app */;
+			productReference = 976CE1432D73BA00002D9FBB /* MiddleClick.app */;
 			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
@@ -193,6 +116,7 @@
 				Base,
 			);
 			mainGroup = 29B97314FDCFA39411CA2CEA /* test */;
+			productRefGroup = 976CE1442D73BA00002D9FBB /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -206,7 +130,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				508EF7C4225FAC4C00353781 /* Images.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -217,16 +140,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				9773F1A52D53ACA600EB4372 /* TrayMenu.swift in Sources */,
-				97631B662D6D24B1006EEE50 /* ConfigCore.swift in Sources */,
-				971AA1C02D737A4C00D920AA /* GlobalState.swift in Sources */,
-				9773F1AA2D53ED4800EB4372 /* Controller.swift in Sources */,
-				9773F1AB2D53ED4800EB4372 /* MultitouchAPI.swift in Sources */,
-				9773F1A72D53E6C500EB4372 /* main.swift in Sources */,
-				971AA1C22D737ABA00D920AA /* AppUtils.swift in Sources */,
-				97921C1B2D52F5A50005EE6F /* MiddleClickConfig.swift in Sources */,
-				973C1DA72D71C3B7004D9A84 /* TouchHandler.swift in Sources */,
-				9779318F2D68E1DC00355E50 /* SystemPermissions.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
