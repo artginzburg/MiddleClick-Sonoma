@@ -1,4 +1,5 @@
 import Foundation
+import ConfigCore
 
 let kCGMouseButtonCenter: Int64 = 2
 

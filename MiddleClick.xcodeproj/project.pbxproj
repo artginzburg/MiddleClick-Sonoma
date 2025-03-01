@@ -8,11 +8,13 @@
 
 /* Begin PBXBuildFile section */
 		75A6B66C0FEE87AB0071FAC0 /* MultitouchSupport.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 75A6B66B0FEE87AB0071FAC0 /* MultitouchSupport.framework */; };
+		976CE2032D73C762002D9FBB /* ConfigCore in Frameworks */ = {isa = PBXBuildFile; productRef = 976CE2022D73C762002D9FBB /* ConfigCore */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		75A6B66B0FEE87AB0071FAC0 /* MultitouchSupport.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MultitouchSupport.framework; path = /System/Library/PrivateFrameworks/MultitouchSupport.framework; sourceTree = "<absolute>"; };
 		976CE1432D73BA00002D9FBB /* MiddleClick.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MiddleClick.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		976CE2042D73D0EC002D9FBB /* ConfigCore */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = ConfigCore; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -35,6 +37,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				75A6B66C0FEE87AB0071FAC0 /* MultitouchSupport.framework in Frameworks */,
+				976CE2032D73C762002D9FBB /* ConfigCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,6 +47,7 @@
 		29B97314FDCFA39411CA2CEA /* test */ = {
 			isa = PBXGroup;
 			children = (
+				976CE2042D73D0EC002D9FBB /* ConfigCore */,
 				976CE16D2D73BAFC002D9FBB /* MiddleClick */,
 				29B97323FDCFA39411CA2CEA /* Frameworks */,
 				976CE1442D73BA00002D9FBB /* Products */,
@@ -323,6 +327,13 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		976CE2022D73C762002D9FBB /* ConfigCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = ConfigCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 29B97313FDCFA39411CA2CEA /* Project object */;
 }
