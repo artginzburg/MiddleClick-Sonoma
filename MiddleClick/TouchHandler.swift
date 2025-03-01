@@ -1,70 +1,89 @@
 import Foundation
 import CoreGraphics
 
-@MainActor let touchHandler = TouchHandler()
-
-@MainActor private let fingersQua = Config.shared.minimumFingers
-@MainActor private let allowMoreFingers = Config.shared.allowMoreFingers
-@MainActor private let maxDistanceDelta = Config.shared.maxDistanceDelta
-@MainActor private let maxTimeDelta = Config.shared.maxTimeDelta
-
-@MainActor private var maybeMiddleClick = false
-@MainActor private var touchStartTime: Date?
-@MainActor private var middleClickX: Float = 0.0
-@MainActor private var middleClickY: Float = 0.0
-@MainActor private var middleClickX2: Float = 0.0
-@MainActor private var middleClickY2: Float = 0.0
-
-@MainActor private let touchCallback: MTContactCallbackFunction = {
-  device, data, nFingers, timestamp, frame in
-  guard !isIgnoredAppBundle() else { return 0 }
-
-  threeDown =
-  allowMoreFingers ? nFingers >= fingersQua : nFingers == fingersQua
-
-  guard !needToClick else { return 0 }
-
-  guard nFingers != 0 else {
-    touchHandler.handleTouchEnd()
-    return 0
-  }
-
-  let isTouchStart = nFingers > 0 && touchStartTime == nil
-  if isTouchStart {
-    touchStartTime = Date()
-    maybeMiddleClick = true
-    middleClickX = 0.0
-    middleClickY = 0.0
-  } else if maybeMiddleClick, let touchStartTime = touchStartTime {
-    // Timeout check for middle click
-    let elapsedTime = -touchStartTime.timeIntervalSinceNow
-    if elapsedTime > maxTimeDelta {
-      maybeMiddleClick = false
+@MainActor class TouchHandler {
+  static let shared = TouchHandler()
+  private init() {
+    Config.shared.$needClick.onSet {
+      self.needToClick = $0
     }
   }
 
-  guard !(nFingers < fingersQua) else { return 0 }
+  /// stored locally, since accessing the cache is more CPU-expensive than a local variable
+  var needToClick = Config.shared.needClick
 
-  if !allowMoreFingers && nFingers > fingersQua {
-    maybeMiddleClick = false
-    middleClickX = 0.0
-    middleClickY = 0.0
+  private static let fingersQua = Config.shared.minimumFingers
+  private static let allowMoreFingers = Config.shared.allowMoreFingers
+  private static let maxDistanceDelta = Config.shared.maxDistanceDelta
+  private static let maxTimeDelta = Config.shared.maxTimeDelta
+
+  private var maybeMiddleClick = false
+  private var touchStartTime: Date?
+  private var middleClickX: Float = 0.0
+  private var middleClickY: Float = 0.0
+  private var middleClickX2: Float = 0.0
+  private var middleClickY2: Float = 0.0
+
+  private let touchCallback: MTContactCallbackFunction = {
+    device, data, nFingers, timestamp, frame in
+    guard !AppUtils.isIgnoredAppBundle() else { return 0 }
+
+    let state = GlobalState.shared
+
+    state.threeDown =
+    allowMoreFingers ? nFingers >= fingersQua : nFingers == fingersQua
+
+    let handler = TouchHandler.shared
+
+    guard !handler.needToClick else { return 0 }
+
+    guard nFingers != 0 else {
+      handler.handleTouchEnd()
+      return 0
+    }
+
+    let isTouchStart = nFingers > 0 && handler.touchStartTime == nil
+    if isTouchStart {
+      handler.touchStartTime = Date()
+      handler.maybeMiddleClick = true
+      handler.middleClickX = 0.0
+      handler.middleClickY = 0.0
+    } else if handler.maybeMiddleClick, let touchStartTime = handler.touchStartTime {
+      // Timeout check for middle click
+      let elapsedTime = -touchStartTime.timeIntervalSinceNow
+      if elapsedTime > maxTimeDelta {
+        handler.maybeMiddleClick = false
+      }
+    }
+
+    guard !(nFingers < fingersQua) else { return 0 }
+
+    if !allowMoreFingers && nFingers > fingersQua {
+      handler.resetMiddleClick()
+    }
+
+    let isCurrentFingersQuaAllowed = allowMoreFingers ? nFingers >= fingersQua : nFingers == fingersQua
+    guard isCurrentFingersQuaAllowed else { return 0 }
+
+    handler.processTouches(data: data, nFingers: nFingers)
+
+    return 0
   }
 
-  let isCurrentFingersQuaAllowed = allowMoreFingers ? nFingers >= fingersQua : nFingers == fingersQua
-  guard isCurrentFingersQuaAllowed else { return 0 }
+  private func processTouches(data: UnsafePointer<Finger>?, nFingers: Int32) {
+    guard let data = data else { return }
 
-  if maybeMiddleClick {
-    middleClickX = 0.0
-    middleClickY = 0.0
-  } else {
-    middleClickX2 = 0.0
-    middleClickY2 = 0.0
-  }
+    if maybeMiddleClick {
+      middleClickX = 0.0
+      middleClickY = 0.0
+    } else {
+      middleClickX2 = 0.0
+      middleClickY2 = 0.0
+    }
 
-  for i in 0..<fingersQua {
-    if let fingerData = data?.advanced(by: i).pointee {
-      let pos = fingerData.normalized.pos
+//    TODO: Wait, what? Why is this iterating by fingersQua instead of nFingers, given that e.g. "allowMoreFingers" exists?
+    for i in 0..<Self.fingersQua {
+      let pos = data.advanced(by: i).pointee.normalized.pos
       if maybeMiddleClick {
         middleClickX += pos.x
         middleClickY += pos.y
@@ -73,30 +92,32 @@ import CoreGraphics
         middleClickY2 += pos.y
       }
     }
+
+    if maybeMiddleClick {
+      middleClickX2 = middleClickX
+      middleClickY2 = middleClickY
+      maybeMiddleClick = false
+    }
   }
 
-  if maybeMiddleClick {
-    middleClickX2 = middleClickX
-    middleClickY2 = middleClickY
+  private func resetMiddleClick() {
     maybeMiddleClick = false
+    middleClickX = 0.0
+    middleClickY = 0.0
   }
 
-  return 0
-}
-
-@MainActor class TouchHandler {
   fileprivate func handleTouchEnd() {
     guard let startTime = touchStartTime else { return }
 
     let elapsedTime = -startTime.timeIntervalSinceNow
     touchStartTime = nil
 
-    guard middleClickX + middleClickY > 0 && elapsedTime <= maxTimeDelta else {
+    guard middleClickX + middleClickY > 0 && elapsedTime <= Self.maxTimeDelta else {
       return
     }
 
     let delta = abs(middleClickX - middleClickX2) + abs(middleClickY - middleClickY2)
-    if delta < maxDistanceDelta && !shouldPreventEmulation() {
+    if delta < Self.maxDistanceDelta && !shouldPreventEmulation() {
       Self.emulateMiddleClick()
     }
   }
@@ -111,10 +132,10 @@ import CoreGraphics
   }
 
   private func shouldPreventEmulation() -> Bool {
-    guard let naturalLastTime = naturalMiddleClickLastTime else { return false }
+    guard let naturalLastTime = GlobalState.shared.naturalMiddleClickLastTime else { return false }
 
     let elapsedTimeSinceNatural = -naturalLastTime.timeIntervalSinceNow
-    return elapsedTimeSinceNatural <= maxTimeDelta * 0.75 // fine-tuned multiplier
+    return elapsedTimeSinceNatural <= Self.maxTimeDelta * 0.75 // fine-tuned multiplier
   }
 
   private static func postMouseEvent(

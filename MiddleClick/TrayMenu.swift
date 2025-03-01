@@ -173,17 +173,17 @@ extension TrayMenu: NSMenuDelegate {
   }
 
   private func updateIgnoredAppItem() {
-    if let focusedAppName = getFocusedApp()?.localizedName {
+    if let focusedAppName = AppUtils.getFocusedApp()?.localizedName {
       ignoredAppItem.title = "Ignore " + focusedAppName
-      ignoredAppItem.state = isIgnoredAppBundle() ? .on : .off
+      ignoredAppItem.state = AppUtils.isIgnoredAppBundle() ? .on : .off
     }
   }
 
   @objc private func ignoreApp(sender: Any) {
-    guard let focusedBundleID = getFocusedApp()?.bundleIdentifier else { return }
+    guard let focusedBundleID = AppUtils.getFocusedApp()?.bundleIdentifier else { return }
 
-    ignoredAppBundlesCache.formSymmetricDifference([focusedBundleID])
+    GlobalState.shared.ignoredAppBundlesCache.formSymmetricDifference([focusedBundleID])
 
-    Config.shared.ignoredAppBundles = ignoredAppBundlesCache
+    Config.shared.ignoredAppBundles = GlobalState.shared.ignoredAppBundlesCache
   }
 }
