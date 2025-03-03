@@ -62,20 +62,29 @@ enum UserDefaultGetter<T: DefaultsSerializable> {
   public static let options = GlobalDefaultsOptions.self
 
   required public init() {
+    super.init()
+
+    let mirror = Mirror(reflecting: self)
+    for child in mirror.children {
+      guard var userDefault = child.value as? (any AnyUserDefault) else { continue } // Skip - not a UserDefault
+      guard userDefault.key == nil else { continue } // Skip - already has an explicit key
+      guard let label = child.label else {
+        fatalError("Could not get child.label in Mirror (ConfigCore)")
+        continue
+      }
+
+      let key = transformLabelToKey(label)
+      userDefault.key = key
+
+      guard let defaultValue = userDefault.defaultValue else { continue } // Skip - no default value, or default value is lazy
+      DefaultsInitStorage.preRegister(key, defaultValue)
+    }
+
     DefaultsInitStorage.register()
+  }
 
-    // //    TODO figure out a way to use the .label as the key of the UserDefault, in order to skip having to specify a literal key. Maybe we'll have to sacrifice UserDefaults.standard.register(), or at least defer it.
-    // //    We can store the labels wherever we want, e.g.:
-    // //       use random string generation as keys for calling UserDefaults.standard.register()
-    // //        Then, when wrappedValue get or set is called, we will know the actual key, so we'll be able to remap the random keys to the true keys.
-
-    //    let mirror = Mirror(reflecting: self)
-    //    for child in mirror.children {
-    //      guard let rawLabel = child.label else { continue }
-    //      if let safeUserDefault = child.value as? AnyExperimentalUserDefault {
-    //        print("I am the actual key label, and I've also got access to the UserDefault object -", rawLabel)
-    //      }
-    //    }
+  private func transformLabelToKey(_ label: String) -> String {
+    return String(label.dropFirst())
   }
 }
 

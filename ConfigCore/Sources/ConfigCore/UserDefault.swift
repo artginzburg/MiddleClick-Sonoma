@@ -1,17 +1,16 @@
-//
-//  File.swift
-//  ConfigCore
-//
-//  Created by Arthur Ginzburg on 02.03.25.
-//
-
 import Foundation
 
+@MainActor protocol AnyUserDefault {
+  associatedtype T: DefaultsSerializable
+  var key: String? { get set }
+  var defaultValue: T? { get }
+}
+
 @propertyWrapper
-@MainActor public class UserDefault<T: DefaultsSerializable> {
-  fileprivate let key: String
+@MainActor public class UserDefault<T: DefaultsSerializable>: AnyUserDefault {
+  var key: String?
   private let getter: UserDefaultGetter<T> = UserDefaultGetter.standard
-  private let defaultValue: T?
+  let defaultValue: T?
   private let lazyGetter: (() -> T)?
   private let transformGet: (T) -> T
 
@@ -22,7 +21,7 @@ import Foundation
 
   public init(
     wrappedValue defaultValue: T,
-    _ key: String,
+    _ key: String? = nil,
     transformGet: @escaping (T) -> T = { $0 },
     options: UserDefaultOptions = []
   ) {
@@ -33,11 +32,13 @@ import Foundation
     self.defaultValue = defaultValue
     self.lazyGetter = nil
 
-    DefaultsInitStorage.preRegister(key, defaultValue)
+    if let key = key {
+      DefaultsInitStorage.preRegister(key, defaultValue)
+    }
   }
   public init(
     wrappedValue lazyGetter: @escaping () -> T,
-    _ key: String,
+    _ key: String? = nil,
     transformGet: @escaping (T) -> T = { $0 },
     options: UserDefaultOptions = []
   ) {
@@ -76,7 +77,7 @@ import Foundation
       if shouldCache {
         _cachedValue = transformGet(newValue) as? T.T
       }
-      T._defaults.save(key: key, value: newValue as! T.T, userDefaults: UserDefaults.standard)
+      T._defaults.save(key: key!, value: newValue as! T.T, userDefaults: UserDefaults.standard)
     }
   }
 
@@ -85,8 +86,8 @@ import Foundation
   }
 
   private func getCurrentValue() -> T {
-    let isUndefined = lazyGetter != nil && UserDefaults.standard.object(forKey: key) == nil
-    let value = isUndefined ? lazyGetter!() : getter.getFunc(key) as! T
+    let isUndefined = lazyGetter != nil && UserDefaults.standard.object(forKey: key!) == nil
+    let value = isUndefined ? lazyGetter!() : getter.getFunc(key!) as! T
 
     return transformGet(value)
   }
@@ -102,7 +103,7 @@ public class UserDefaultWrapper<T: DefaultsSerializable> {
     userDefault.onSet = onSet
   }
   @MainActor public func delete(reset: Bool = true) {
-    UserDefaults.standard.removeObject(forKey: userDefault.key)
+    UserDefaults.standard.removeObject(forKey: userDefault.key!)
     if reset { userDefault.reset() }
   }
 }
