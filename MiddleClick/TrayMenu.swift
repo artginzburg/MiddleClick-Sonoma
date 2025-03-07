@@ -167,9 +167,29 @@ import ServiceManagement
     initAccessibilityPermissionStatus(menu: menu)
   }
 
+  #if DEBUG
+  private var timesHandledReopen = 0
+  private func isRunningInXcode() -> Bool {
+    return ProcessInfo.processInfo.environment["IDE_DISABLED_OS_ACTIVITY_DT_MODE"] != nil
+  }
+  #endif
+
   func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool
   {
+    #if DEBUG
+    guard !isRunningInXcode() || timesHandledReopen >= 2 else {
+      timesHandledReopen += 1
+      return true
+    }
+    #endif
+
     statusItem.isVisible = true
+    Timer.scheduledTimer(withTimeInterval: 0.01, repeats: false) { _ in
+      DispatchQueue.main.async {
+        self.statusItem.button?.performClick(nil)
+      }
+    }
+
     return true
   }
 }
