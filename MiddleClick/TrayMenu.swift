@@ -1,7 +1,8 @@
 import Cocoa
+import ServiceManagement
 
 @MainActor final class TrayMenu: NSObject, NSApplicationDelegate {
-  private var infoItem, tapToClickItem, accessibilityPermissionStatusItem, accessibilityPermissionActionItem, ignoredAppItem: NSMenuItem!
+  private var infoItem, tapToClickItem, accessibilityPermissionStatusItem, accessibilityPermissionActionItem, ignoredAppItem, launchAtLoginItem: NSMenuItem!
   private var statusItem: NSStatusItem!
 
   @objc private func initAccessibilityPermissionStatus(menu: NSMenu) {
@@ -114,6 +115,13 @@ import Cocoa
 
     menu.addItem(NSMenuItem.separator())
 
+    launchAtLoginItem = menu.addItem(
+      withTitle: "Launch at login",
+      action: #selector(toggleLoginItem),
+      keyEquivalent: ""
+    )
+    updateLaunchAtLoginItem()
+
     let aboutItem = menu.addItem(
       withTitle: "About \(getAppName())...", action: #selector(openWebsite(sender:)),
       keyEquivalent: "")
@@ -166,6 +174,70 @@ import Cocoa
   }
 }
 
+// Launch at login:
+extension TrayMenu {
+  @objc private func toggleLoginItem() {
+    modifyLoginItem(add: launchAtLoginItem.state == .off)
+    updateLaunchAtLoginItem()
+  }
+  private func updateLaunchAtLoginItem() {
+    launchAtLoginItem.state = isLoginItemEnabled() ? .on : .off
+  }
+  private func isLoginItemEnabled() -> Bool {
+    if #available(macOS 13.0, *) {
+      return SMAppService.mainApp.status == .enabled
+    } else {
+      let appName = getAppName()
+      let script = """
+        tell application "System Events" to get name of login item "\(appName)"
+        """
+
+      if let appleScript = NSAppleScript(source: script) {
+        var errorDict: NSDictionary?
+        let result = appleScript.executeAndReturnError(&errorDict)
+
+        if errorDict != nil {
+          return false
+        }
+
+        return result.stringValue == appName
+      }
+
+      return false
+    }
+  }
+  private func modifyLoginItem(add: Bool) {
+    if #available(macOS 13.0, *) {
+      do {
+        if add {
+          try SMAppService.mainApp.register()
+        } else {
+          try SMAppService.mainApp.unregister()
+        }
+      } catch {
+        print("Failed to \(add ? "add" : "remove") to login items: \(error)")
+      }
+    } else {
+      let appName = getAppName()
+      let script = add ?
+        """
+        tell application "System Events" to make login item at end with properties {path:"/Applications/\(appName).app", hidden:true}
+        """ :
+        """
+        tell application "System Events" to delete login item "\(appName)"
+        """
+
+      if let appleScript = NSAppleScript(source: script) {
+        var errorDict: NSDictionary?
+        appleScript.executeAndReturnError(&errorDict)
+
+        if let error = errorDict {
+          print("Failed to \(add ? "add" : "remove") \(appName) from login items: \(error)")
+        }
+      }
+    }
+  }
+}
 
 extension TrayMenu: NSMenuDelegate {
   func menuWillOpen(_ menu: NSMenu) {
