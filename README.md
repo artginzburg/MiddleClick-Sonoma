@@ -1,5 +1,5 @@
 <a href="https://github.com/artginzburg/MiddleClick-Sonoma/releases">
-  <img align="right" src="https://img.shields.io/github/downloads/artginzburg/middleclick-sonoma/total?color=teal" title="GitHub All Releases">
+  <img align="right" src="https://img.shields.io/github/downloads/artginzburg/MiddleClick-Sonoma/total?color=teal" title="GitHub All Releases">
 </a>
 
 <div align="center">
@@ -47,7 +47,7 @@ It's more than just `⌘`+click
 
 ## Install
 
-### Via :beer: [Homebrew Cask](//brew.sh) (Recommended)
+### Via :beer: [Homebrew](https://brew.sh) (Recommended)
 
 ```ps1
 brew install --cask --no-quarantine middleclick
@@ -55,21 +55,7 @@ brew install --cask --no-quarantine middleclick
 
 > Check out [the cask](https://github.com/Homebrew/homebrew-cask/blob/master/Casks/m/middleclick.rb) if you're interested
 
-### Direct Download
-
-<details>
-  <summary>
-    <a href="https://github.com/artginzburg/MiddleClick-Sonoma/releases/latest/download/MiddleClick.zip">
-      Latest Release
-    </a>&nbsp·&nbsp
-    <a href="https://github.com/artginzburg/MiddleClick-Sonoma/releases/latest">
-      <img align="center" alt="GitHub release" src="https://img.shields.io/github/release/artginzburg/middleclick-Sonoma?label=%20&color=gray">
-    </a>
-  </summary>
-
-> Additionally, you may also view <a href="https://github.com/artginzburg/MiddleClick-Sonoma/releases">Earlier Releases</a>
-
-</details>
+### <a href="https://github.com/artginzburg/MiddleClick-Sonoma/releases/latest/download/MiddleClick.zip">Direct Download · <img align="center" alt="GitHub release" src="https://img.shields.io/github/release/artginzburg/middleclick-Sonoma?label=%20&color=gray"></a>
 
 <br>
 
@@ -79,20 +65,6 @@ brew install --cask --no-quarantine middleclick
 2. Let it go
 
 > To recover the item, just open MiddleClick when it's already running
-
-### Add Login Item
-
-> Make it open automatically when you log in
-
-<details>
-
-<summary>Just add MiddleClick to your "Login Items". <p align="right">(it's handy to be done using command line)</p></summary>
-
-```ps1
-osascript -e 'tell application "System Events" to make login item at end with properties {path:"/Applications/MiddleClick.app", hidden:true}'
-```
-
-</details>
 
 ## Preferences
 
@@ -140,35 +112,9 @@ defaults write com.rouge41.middleClick maxTimeDelta 150
 
 > Default is 300
 
----
+## Credits
 
-<details>
-  <summary>This fork differs from the <a href="//github.com/cl3m/MiddleClick">base fork</a> in some ways</summary>
-
-- Configurations: Number of Fingers, Click or Tap
-  - preferred setting is saved for every user
-- Removed old 32-bit/PowerPc `relaunch` binary due to it's incompatibility with macOS 10.15 Catalina and greater. Replaced with inline restarting of the app
-- The App will not only restart on waking the Mac, but when a new touch device is added (so it immediately gains middleclicking ability) and when a display is added/reconfigured (for proper click positioning)
-</details>
-
-#### Attention! Make sure to:
-
-1. Quit an old version of MiddleClick
-2. Remove it from the privacy settings
-3. Enable the new version in privacy settings when prompted
-
-> The app should be closed when you change the privacy settings, otherwise the Mouse may not be clickable and you may have to `killall MiddleClick` via terminal or even force restart the Mac.
-
-<details>
-  <summary><b>Credits</b></summary>
-  <blockquote>
-  <br>
-
-This project was made by [Clément Beffa](//clement.beffa.org/),
-
-Extended by [LoPablo](//github.com/LoPablo)
-
-and [artginzburg](//github.com/artginzburg) (it's me)
-
-  </blockquote>
-</details>
+Created by [Clément Beffa](https://clement.beffa.org/),<br/>
+fixed by [Alex Galonsky](https://github.com/galonsky) and [Carlos E. Hernandez](https://github.com/carlosh),<br/>
+revived by [Pascâl Hartmann](https://github.com/LoPablo),<br/>
+maintained by [Arthur Ginzburg](https://github.com/artginzburg)
