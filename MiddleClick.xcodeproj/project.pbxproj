@@ -184,7 +184,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MARKETING_VERSION = 3.0.0;
 				OTHER_SWIFT_STDLIB_TOOL_FLAGS = "--source-libraries /dev/null";
-				PRODUCT_BUNDLE_IDENTIFIER = com.rouge41.middleClick;
+				PRODUCT_BUNDLE_IDENTIFIER = art.ginzburg.MiddleClick;
 				PRODUCT_NAME = MiddleClick;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
@@ -224,7 +224,7 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.13;
 				MARKETING_VERSION = 3.0.0;
 				OTHER_SWIFT_STDLIB_TOOL_FLAGS = "--source-libraries /dev/null";
-				PRODUCT_BUNDLE_IDENTIFIER = com.rouge41.middleClick;
+				PRODUCT_BUNDLE_IDENTIFIER = art.ginzburg.MiddleClick;
 				PRODUCT_NAME = MiddleClick;
 				PROVISIONING_PROFILE_SPECIFIER = "";
 				SDKROOT = macosx;
