@@ -4,13 +4,13 @@ import CoreGraphics
 @MainActor class TouchHandler {
   static let shared = TouchHandler()
   private init() {
-    Config.shared.$needClick.onSet {
-      self.needToClick = $0
+    Config.shared.$tapToClick.onSet {
+      self.tapToClick = $0
     }
   }
 
   /// stored locally, since accessing the cache is more CPU-expensive than a local variable
-  var needToClick = Config.shared.needClick
+  var tapToClick = Config.shared.tapToClick
 
   private static let fingersQua = Config.shared.minimumFingers
   private static let allowMoreFingers = Config.shared.allowMoreFingers
@@ -35,7 +35,7 @@ import CoreGraphics
 
     let handler = TouchHandler.shared
 
-    guard !handler.needToClick else { return 0 }
+    guard handler.tapToClick else { return 0 }
 
     guard nFingers != 0 else {
       handler.handleTouchEnd()

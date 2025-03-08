@@ -19,13 +19,11 @@ final class Config: ConfigCore {
   @UserDefault(transformGet: { $0 / 1000 })
   var maxTimeDelta: Double = 300
 
-  /// inverted "Tap to Click" flag
-  @UserDefault var needClick = getIsSystemTapToClickDisabled
+  @UserDefault var tapToClick = getIsSystemTapToClickEnabled
 
   @UserDefault var ignoredAppBundles = Set<String>()
 }
 
-func getIsSystemTapToClickDisabled() -> Bool {
-  let clickingEnabled = CFPreferencesCopyAppValue("Clicking" as CFString, "com.apple.driver.AppleBluetoothMultitouch.trackpad" as CFString) as? Int ?? 1
-  return clickingEnabled == 0
+private func getIsSystemTapToClickEnabled() -> Bool {
+  return CFPreferencesGetAppBooleanValue("Clicking" as CFString, "com.apple.driver.AppleBluetoothMultitouch.trackpad" as CFString, nil)
 }

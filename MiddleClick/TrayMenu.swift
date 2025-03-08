@@ -58,25 +58,25 @@ import ServiceManagement
   }
 
   @objc private func toggleTapToClick(sender: NSButton) {
-    Config.shared.needClick = sender.state == .on
+    Config.shared.tapToClick = sender.state == .off
     setChecks()
   }
 
   @objc private func resetTapToClick(sender: NSButton) {
-    Config.shared.$needClick.delete()
+    Config.shared.$tapToClick.delete()
     setChecks()
   }
 
   private func setChecks() {
-    let clickMode = Config.shared.needClick
-    let clickModeInfo = "Click" + (clickMode ? "" : " or Tap")
+    let tapToClick = Config.shared.tapToClick
+    let clickModeInfo = "Click" + (tapToClick ? " or Tap" : "")
 
     let fingersQua = Config.shared.minimumFingers
     let allowMoreFingers = Config.shared.allowMoreFingers
     let fingersInfo = " with \(fingersQua)\(allowMoreFingers ? "+" : "") Fingers"
 
     infoItem.title = clickModeInfo + fingersInfo
-    tapToClickItem.state = clickMode ? .off : .on
+    tapToClickItem.state = tapToClick ? .on : .off
   }
 
   @objc private func actionQuit(sender: Any) {

@@ -17,6 +17,7 @@ class UserDefaultsMigration {
 
     if storedVersion < 1 {
       migrateFromOldBundleID()
+      migrateFromNeedClick()
     }
 
     UserDefaults.standard.set(currentVersion, forKey: schemaVersionKey)
@@ -57,5 +58,18 @@ class UserDefaultsMigration {
     oldDefaults.removePersistentDomain(forName: oldBundleID)
 
     print("Migrated UserDefaults from old bundle ID.")
+  }
+
+  private static func migrateFromNeedClick() {
+    let key = "needClick"
+    let newKey = "tapToClick"
+    let isDefined = UserDefaults.standard.value(forKey: key) != nil
+    guard isDefined else {
+      print("Skipping migration \(key) -> \(newKey) - not defined.")
+      return
+    }
+    let newValue = !UserDefaults.standard.bool(forKey: key)
+    print("Migrating \(key) = \(!newValue) -> \(newKey) = \(newValue)")
+    UserDefaults.standard.set(newValue, forKey: newKey)
   }
 }
