@@ -53,7 +53,7 @@ func MTUnregisterContactFrameCallback(
   _ device: MTDevice, _ callback: MTContactCallbackFunction)
 
 @_silgen_name("MTDeviceStart")
-func MTDeviceStart(_ device: MTDevice, _ something: Int32)
+func MTDeviceStart(_ device: MTDevice, _ runMode: Int32)
 
 @_silgen_name("MTDeviceStop")
 func MTDeviceStop(_ device: MTDevice)
