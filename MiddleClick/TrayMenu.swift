@@ -235,7 +235,7 @@ extension TrayMenu {
           try SMAppService.mainApp.unregister()
         }
       } catch {
-        print("Failed to \(add ? "add" : "remove") to login items: \(error)")
+        log.error("Failed to \(add ? "add" : "remove") to login items: \(error)")
       }
     } else {
       let appName = getAppName()
@@ -252,7 +252,7 @@ extension TrayMenu {
         appleScript.executeAndReturnError(&errorDict)
 
         if let error = errorDict {
-          print("Failed to \(add ? "add" : "remove") \(appName) from login items: \(error)")
+          log.error("Failed to \(add ? "add" : "remove") \(appName) from login items: \(error)")
         }
       }
     }

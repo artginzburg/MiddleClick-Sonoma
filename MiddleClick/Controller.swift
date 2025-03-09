@@ -15,7 +15,7 @@ import IOKit.hid
   private static let immediateRestart = false
 
   func start() {
-    NSLog("Starting all listeners...")
+    log.info("Starting listeners...")
 
     TouchHandler.shared.registerTouchCallback()
 
@@ -32,10 +32,11 @@ import IOKit.hid
   }
 
   /// Schedule listeners to be restarted. If a restart is pending, delay it.
-  func scheduleRestart(_ delay: TimeInterval) {
+  func scheduleRestart(_ delay: TimeInterval, reason: String) {
+    restartLog.info("\(reason), restarting in \(delay)")
     restartTimer?.invalidate()
     restartTimer = Timer.scheduledTimer(
-      withTimeInterval: Controller.immediateRestart ? 0 : delay, repeats: false
+      withTimeInterval: Self.immediateRestart ? 0 : delay, repeats: false
     ) { [weak self] _ in
       guard let self = self else { return }
       DispatchQueue.main.async {
@@ -47,24 +48,22 @@ import IOKit.hid
   /// Callback for system wake up.
   /// Can be tested by entering `pmset sleepnow` in the Terminal
   @objc private func receiveWakeNote(_ note: Notification) {
-    NSLog("System woke up, restarting in \(Self.wakeRestartTimeout)...")
-    scheduleRestart(Self.wakeRestartTimeout)
+    scheduleRestart(Self.wakeRestartTimeout, reason: "System woke up")
   }
 
   private func restartListeners() {
-    NSLog("Restarting app functionality...")
+    log.info("Restarting now...")
     stopUnstableListeners()
     startUnstableListeners()
+    log.info("Restart success.")
   }
 
   private func startUnstableListeners() {
-    NSLog("Starting unstable listeners...")
     TouchHandler.shared.registerTouchCallback()
     registerMouseCallback()
   }
 
   private func stopUnstableListeners() {
-    NSLog("Stopping unstable listeners...")
     TouchHandler.shared.unregisterTouchCallback()
     unregisterMouseCallback()
   }
@@ -82,9 +81,8 @@ import IOKit.hid
         CFRunLoopGetCurrent(), currentRunLoopSource, .commonModes)
       CGEvent.tapEnable(tap: tap, enable: true)
     } else {
-      NSLog("Couldn't create event tap! Check accessibility permissions.")
       UserDefaults.standard.set(true, forKey: "NSStatusItem Visible Item-0")
-      scheduleRestart(5)
+      scheduleRestart(5, reason: "Couldn't create event tap (check accessibility permission)")
     }
   }
 
@@ -106,7 +104,7 @@ import IOKit.hid
 
   private func setupMultitouchListener() {
     guard let port = IONotificationPortCreate(kIOMasterPortDefault) else {
-      NSLog("Failed to create IONotificationPort.")
+      log.error("Failed to create IONotificationPort.")
       return
     }
 
@@ -115,7 +113,7 @@ import IOKit.hid
     {
       CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, .defaultMode)
     } else {
-      NSLog("Failed to get run loop source from IONotificationPort.")
+      log.error("Failed to get run loop source from IONotificationPort.")
       IONotificationPortDestroy(port)
       return
     }
@@ -131,9 +129,7 @@ import IOKit.hid
     )
 
     if err != KERN_SUCCESS {
-      NSLog(
-        "Failed to register notification for touchpad attach: %x, will not handle newly attached devices",
-        err)
+      log.error("Failed to register notification for touchpad attach: \(err), will not handle newly attached devices")
       IONotificationPortDestroy(port)
       return  // this `return` was not previously here. But it's only logical to have it.
     }
@@ -181,10 +177,9 @@ import IOKit.hid
     if flags.contains(.setModeFlag) || flags.contains(.addFlag)
         || flags.contains(.removeFlag) || flags.contains(.disabledFlag)
     {
-      print("Display reconfigured, restarting...")
       let controller = Unmanaged<Controller>.fromOpaque(userData!)
         .takeUnretainedValue()
-      controller.scheduleRestart(2)
+      controller.scheduleRestart(2, reason: "Display reconfigured")
     }
   }
 
@@ -196,8 +191,7 @@ import IOKit.hid
 
     let controller = Unmanaged<Controller>.fromOpaque(userData!)
       .takeUnretainedValue()
-    NSLog("Multitouch device added, restarting...")
-    controller.scheduleRestart(2)
+    controller.scheduleRestart(2, reason: "Multitouch device added")
   }
 }
 
