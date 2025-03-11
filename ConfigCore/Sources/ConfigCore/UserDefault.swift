@@ -9,7 +9,7 @@ import Foundation
 @propertyWrapper
 @MainActor public class UserDefault<T: DefaultsSerializable>: AnyUserDefault {
   var key: String?
-  private let getter: UserDefaultGetter<T> = UserDefaultGetter.standard
+  private let getter = getGetter(for: T.self)
   let defaultValue: T?
   private let lazyGetter: (() -> T)?
   private let transformGet: (T) -> T
@@ -87,7 +87,7 @@ import Foundation
 
   private func getCurrentValue() -> T {
     let isUndefined = lazyGetter != nil && UserDefaults.standard.object(forKey: key!) == nil
-    let value = isUndefined ? lazyGetter!() : getter.getFunc(key!) as! T
+    let value = isUndefined ? lazyGetter!() : getter(key!) as! T
 
     return transformGet(value)
   }
@@ -126,5 +126,26 @@ public class UserDefaultWrapper<T: DefaultsSerializable> {
     guard shared.store.count > 0 else { return }
 
     UserDefaults.standard.register(defaults: shared.store)
+  }
+}
+
+private func getGetter<T: DefaultsSerializable>(for type: T.Type) -> (_ forKey: String) -> (any DefaultsSerializable)? {
+  switch T.self {
+  case is Bool.Type:
+    return UserDefaults.standard.bool
+  case is String.Type:
+    return UserDefaults.standard.string
+  case is Int.Type:
+    return UserDefaults.standard.integer
+  case is Double.Type:
+    return UserDefaults.standard.double
+  case is Float.Type:
+    return UserDefaults.standard.float
+  case is [String].Type:
+    return UserDefaults.standard.stringArray
+  default:
+    return {
+      T._defaults.get(key: $0, userDefaults: UserDefaults.standard) as? T
+    }
   }
 }

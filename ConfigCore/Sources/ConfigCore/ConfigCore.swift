@@ -3,52 +3,29 @@ import Foundation
 // Huge thanks to https://github.com/sunshinejr/SwiftyUserDefaults .
 // I found it too late, but some parts of it, like the DefaultsBridge, are just gold.
 
-// TODO rewrite this
-enum UserDefaultGetter<T: DefaultsSerializable> {
-  case standard
-
-  var getFunc: (_ forKey: String) -> (any DefaultsSerializable)? {
-    switch T.self {
-    case is Bool.Type:
-      return UserDefaults.standard.bool
-    case is String.Type:
-      return UserDefaults.standard.string
-    case is Int.Type:
-      return UserDefaults.standard.integer
-    case is Double.Type:
-      return UserDefaults.standard.double
-    case is Float.Type:
-      return UserDefaults.standard.float
-    case is [String].Type:
-      return UserDefaults.standard.stringArray
-    default:
-      return {
-        T._defaults.get(key: $0, userDefaults: UserDefaults.standard) as? any DefaultsSerializable
-      }
-    }
-  }
-}
-
-
 /**
  Extend this class to define your Config
 
  ```swift
- final class Config: UserDefaultsInitializer { ... }
+ final class Config: ConfigCore { ... }
  ```
  # Usage
  - Define your keys (without `static`):
  ```swift
- @UserDefault("fingers") // <- key
- var minimumFingers = 3 // <- default value
+ //                  \ key /
+ @UserDefault var minimumFingers = 3 // <- default value
+ // Under the hood, this means:
+ UserDefaults.standard.register(defaults: ["minimumFingers": 3])
  ```
  - Use them via `.shared`:
  ```swift
  let fingersQuantity = Config.shared.minimumFingers
  ```
  - More options you can discover, using auto-completions on ``UserDefault``:
- - caching
- - using a function as the default value (waits until the property is first accessed)
+   - automatic key inference
+   - caching
+   - using a function as the default value (waits until the property is first accessed)
+   - using a key different from the variable name: `@UserDefault("fingers")`
 
  ## Global options
  ``GlobalDefaultsOptions`` can be modified. For convenience (and proper lazy access), use the init function of your Config, like so:
