@@ -4,8 +4,8 @@ import Foundation
 import IOKit
 import IOKit.hid
 
-@MainActor final class Controller: NSObject {
-  private weak var restartTimer: Timer?
+@MainActor final class Controller {
+  private var restartTimer: Timer?
   private var currentEventTap: CFMachPort?
   private var currentRunLoopSource: CFRunLoopSource?
 
@@ -37,8 +37,7 @@ import IOKit.hid
     restartTimer?.invalidate()
     restartTimer = Timer.scheduledTimer(
       withTimeInterval: Self.immediateRestart ? 0 : delay, repeats: false
-    ) { [weak self] _ in
-      guard let self = self else { return }
+    ) { _ in
       DispatchQueue.main.async {
         self.restartListeners()
       }
