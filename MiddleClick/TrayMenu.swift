@@ -1,197 +1,193 @@
 import Cocoa
 import ServiceManagement
 
-@MainActor final class TrayMenu: NSObject, NSApplicationDelegate {
+@MainActor final class TrayMenu: NSObject {
+  private let config = Config.shared
   private var infoItem, tapToClickItem, accessibilityPermissionStatusItem, accessibilityPermissionActionItem, ignoredAppItem, launchAtLoginItem: NSMenuItem!
-  private var statusItem: NSStatusItem!
+  private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
 
-  @objc private func initAccessibilityPermissionStatus(menu: NSMenu) {
+  override init() {
+    super.init()
+    setupStatusItem()
+    initAccessibilityPermissionStatus()
+  }
+
+  @objc private func initAccessibilityPermissionStatus() {
     let hasAccessibilityPermission = SystemPermissions.detectAccessibilityIsGranted(forcePrompt: true)
 
-    updateAccessibilityPermissionStatus(
-      menu: menu, hasAccessibilityPermission: hasAccessibilityPermission)
+    updateAccessibilityPermissionStatus(hasAccessibilityPermission)
 
     if !hasAccessibilityPermission {
       Timer
         .scheduledTimer(
           timeInterval: 0.3,
           target: self,
-          selector: #selector(initAccessibilityPermissionStatus(menu:)),
+          selector: #selector(initAccessibilityPermissionStatus),
           userInfo: nil,
           repeats: false
         )
     }
   }
 
-  private func updateAccessibilityPermissionStatus(menu: NSMenu, hasAccessibilityPermission: Bool) {
+  private func updateAccessibilityPermissionStatus(_ hasAccessibilityPermission: Bool) {
     statusItem.button?.appearsDisabled = !hasAccessibilityPermission
     accessibilityPermissionStatusItem.isHidden = hasAccessibilityPermission
     accessibilityPermissionActionItem.isHidden = hasAccessibilityPermission
   }
 
-  @objc private func openWebsite(sender: Any) {
-    if let url = URL(string: "https://github.com/artginzburg/MiddleClick-Sonoma") {
-      NSWorkspace.shared.open(url)
-    }
-  }
-
-  @objc private func openAccessibilitySettings(sender: Any) {
-    let isPreCatalina =
-      (floor(NSAppKitVersion.current.rawValue) < NSAppKitVersion.macOS10_15.rawValue)
-    if isPreCatalina {
-      let appleScript = """
-        tell application "System Preferences"
-        activate
-        reveal anchor "Privacy_Accessibility" of pane "com.apple.preference.security"
-        end tell
-        """
-      if let script = NSAppleScript(source: appleScript) {
-        script.executeAndReturnError(nil)
-      }
-    } else {
-      if let url = URL(
-        string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
-      {
-        NSWorkspace.shared.open(url)
-      }
-    }
-  }
-
-  @objc private func toggleTapToClick(sender: NSButton) {
-    Config.shared.tapToClick = sender.state == .off
-    setChecks()
-  }
-
-  @objc private func resetTapToClick(sender: NSButton) {
-    Config.shared.$tapToClick.delete()
-    setChecks()
-  }
-
-  private func setChecks() {
-    let tapToClick = Config.shared.tapToClick
+  private func updateTapToClickStatus() {
+    let tapToClick = config.tapToClick
     let clickModeInfo = "Click" + (tapToClick ? " or Tap" : "")
-
-    let fingersQua = Config.shared.minimumFingers
-    let allowMoreFingers = Config.shared.allowMoreFingers
-    let fingersInfo = " with \(fingersQua)\(allowMoreFingers ? "+" : "") Fingers"
+    let fingersInfo = " with \(config.minimumFingers)\(config.allowMoreFingers ? "+" : "") Fingers"
 
     infoItem.title = clickModeInfo + fingersInfo
     tapToClickItem.state = tapToClick ? .on : .off
-  }
-
-  @objc private func actionQuit(sender: Any) {
-    NSApp.terminate(sender)
   }
 
   private func createMenu() -> NSMenu {
     let menu = NSMenu()
     menu.delegate = self
 
-    createMenuAccessibilityPermissionItems(menu: menu)
+    createMenuAccessibilityPermissionItems(menu)
 
     ignoredAppItem = menu
       .addItem(
         withTitle: "Ignore focused app",
         action: #selector(ignoreApp),
-        keyEquivalent: ""
+        target: self
       )
-    menu.addItem(.separator())
+    menu.addSeparator()
 
-    infoItem = menu.addItem(withTitle: "", action: nil, keyEquivalent: "")
-    infoItem.target = self
+    infoItem = menu.addItem(withTitle: "")
 
     tapToClickItem = menu.addItem(
-      withTitle: "Tap to click", action: #selector(toggleTapToClick), keyEquivalent: "")
-    tapToClickItem.target = self
+      withTitle: "Tap to click", action: #selector(toggleTapToClick), target: self)
 
     let resetItem = menu.addItem(
-      withTitle: "Reset to System Settings", action: #selector(resetTapToClick(sender:)),
-      keyEquivalent: "")
+      withTitle: "Reset to System Settings", action: #selector(resetTapToClick), target: self)
     resetItem.isAlternate = true
     resetItem.keyEquivalentModifierMask = .option
-    resetItem.target = self
 
-    setChecks()
+    updateTapToClickStatus()
 
-    menu.addItem(NSMenuItem.separator())
+    menu.addSeparator()
 
     launchAtLoginItem = menu.addItem(
       withTitle: "Launch at login",
       action: #selector(toggleLoginItem),
-      keyEquivalent: ""
+      target: self
     )
     updateLaunchAtLoginItem()
 
-    let aboutItem = menu.addItem(
-      withTitle: "About \(getAppName())...", action: #selector(openWebsite(sender:)),
-      keyEquivalent: "")
-    aboutItem.target = self
+    _ = menu.addItem(
+      withTitle: "About \(getAppName())...", action: #selector(self.openWebsite), target: self)
 
-    let quitItem = menu.addItem(
-      withTitle: "Quit", action: #selector(actionQuit(sender:)), keyEquivalent: "q")
-    quitItem.target = self
+    _ = menu.addItem(
+      withTitle: "Quit", action: #selector(actionQuit), target: self, keyEquivalent: "q")
 
     return menu
   }
 
-  private func createMenuAccessibilityPermissionItems(menu: NSMenu) {
+  private func createMenuAccessibilityPermissionItems(_ menu: NSMenu) {
     accessibilityPermissionStatusItem = menu.addItem(
-      withTitle: "Missing Accessibility permission", action: nil, keyEquivalent: "")
+      withTitle: "Missing Accessibility permission")
     accessibilityPermissionActionItem = menu.addItem(
-      withTitle: "Open Privacy Preferences", action: #selector(openAccessibilitySettings(sender:)),
+      withTitle: "Open Privacy Preferences", action: #selector(openAccessibilitySettings), target: self,
       keyEquivalent: ",")
-    menu.addItem(NSMenuItem.separator())
+    menu.addSeparator()
   }
 
   private func getAppName() -> String {
     return ProcessInfo.processInfo.processName
   }
 
-  func applicationDidFinishLaunching(_ notification: Notification) {
-    let menu = createMenu()
-
-    let icon = NSImage(named: "StatusIcon") ?? NSImage()
-    icon.size = CGSize(width: 24, height: 24)  // TODO? increase size
-
-    let oldBusted = (floor(NSAppKitVersion.current.rawValue) <= NSAppKitVersion.macOS10_9.rawValue)
-    if !oldBusted {
-      icon.isTemplate = true
-    }
-
-    statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+  private func setupStatusItem() {
     statusItem.behavior = .removalAllowed
-    statusItem.menu = menu
+    statusItem.menu = createMenu()
     statusItem.button?.toolTip = getAppName()
-    statusItem.button?.image = icon
+    statusItem.button?.image = createStatusIcon()
+  }
 
-    initAccessibilityPermissionStatus(menu: menu)
+  private func createStatusIcon() -> NSImage? {
+    guard let icon = NSImage(named: "StatusIcon") else { return nil }
+    icon.size = CGSize(width: 24, height: 24) // TODO? increase size
+    icon.isTemplate = true
+    return icon
   }
 
   #if DEBUG
   private var timesHandledReopen = 0
-  private func isRunningInXcode() -> Bool {
-    return ProcessInfo.processInfo.environment["IDE_DISABLED_OS_ACTIVITY_DT_MODE"] != nil
-  }
   #endif
+}
 
-  func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool
-  {
-    #if DEBUG
-    guard !isRunningInXcode() || timesHandledReopen >= 2 else {
-      timesHandledReopen += 1
-      return true
+// MARK: Actions
+extension TrayMenu {
+  @objc private func openWebsite() {
+    if let url = URL(string: "https://github.com/artginzburg/MiddleClick-Sonoma") {
+      NSWorkspace.shared.open(url)
     }
-    #endif
+  }
 
-    statusItem.isVisible = true
-    Timer.scheduledTimer(withTimeInterval: 0.01, repeats: false) { _ in
-      DispatchQueue.main.async {
-        self.statusItem.button?.performClick(nil)
+  @objc private func openAccessibilitySettings() {
+    if #available(macOS 10.15, *) {
+      if let url = URL(
+        string: "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility")
+      {
+        NSWorkspace.shared.open(url)
+      }
+    } else {
+      let appleScript = """
+        tell application "System Preferences"
+          activate
+          reveal anchor "Privacy_Accessibility" of pane "com.apple.preference.security"
+        end tell
+        """
+      if let script = NSAppleScript(source: appleScript) {
+        script.executeAndReturnError(nil)
       }
     }
-
-    return true
   }
+
+  @objc private func toggleTapToClick(sender: NSButton) {
+    config.tapToClick = sender.state == .off
+    updateTapToClickStatus()
+  }
+
+  @objc private func resetTapToClick() {
+    config.$tapToClick.delete()
+    updateTapToClickStatus()
+  }
+
+  @objc private func actionQuit(sender: Any) {
+    NSApp.terminate(sender)
+  }
+}
+
+extension TrayMenu: NSApplicationDelegate {
+  #if DEBUG
+    private func isRunningInXcode() -> Bool {
+      return ProcessInfo.processInfo.environment["IDE_DISABLED_OS_ACTIVITY_DT_MODE"] != nil
+    }
+  #endif
+
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool
+    {
+  #if DEBUG
+      guard !isRunningInXcode() || timesHandledReopen >= 2 else {
+        timesHandledReopen += 1
+        return true
+      }
+  #endif
+
+      statusItem.isVisible = true
+      Timer.scheduledTimer(withTimeInterval: 0.01, repeats: false) { _ in
+        DispatchQueue.main.async {
+          self.statusItem.button?.performClick(nil)
+        }
+      }
+
+      return true
+    }
 }
 
 // Launch at login:
@@ -265,17 +261,32 @@ extension TrayMenu: NSMenuDelegate {
   }
 
   private func updateIgnoredAppItem() {
-    if let focusedAppName = AppUtils.getFocusedApp()?.localizedName {
+    let focusedApp = AppUtils.getFocusedApp()
+    if let focusedAppName = focusedApp?.localizedName {
       ignoredAppItem.title = "Ignore " + focusedAppName
-      ignoredAppItem.state = AppUtils.isIgnoredAppBundle() ? .on : .off
+      ignoredAppItem.state = AppUtils.isIgnoredAppBundle(focusedApp) ? .on : .off
     }
   }
 
-  @objc private func ignoreApp(sender: Any) {
+  @objc private func ignoreApp() {
     guard let focusedBundleID = AppUtils.getFocusedApp()?.bundleIdentifier else { return }
 
-    GlobalState.shared.ignoredAppBundlesCache.formSymmetricDifference([focusedBundleID])
+    config.ignoredAppBundles.formSymmetricDifference([focusedBundleID])
+  }
+}
 
-    Config.shared.ignoredAppBundles = GlobalState.shared.ignoredAppBundlesCache
+extension NSMenu {
+  func addItem(withTitle string: String, action selector: Selector, target: AnyObject, keyEquivalent charCode: String = "") -> NSMenuItem {
+    let menuItem = NSMenuItem(title: string, action: selector, keyEquivalent: charCode)
+    menuItem.target = target
+    self.addItem(menuItem)
+    return menuItem
+  }
+  func addItem(withTitle string: String) -> NSMenuItem {
+    return self.addItem(withTitle: string, action: nil, keyEquivalent: "")
+  }
+
+  func addSeparator() {
+    self.addItem(.separator())
   }
 }

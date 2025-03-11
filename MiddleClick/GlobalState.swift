@@ -3,7 +3,11 @@ import Foundation
 @MainActor
 final class GlobalState {
   static let shared = GlobalState()
-  private init() {}
+  private init() {
+    Config.shared.$ignoredAppBundles.onSet {
+      self.ignoredAppBundlesCache = $0
+    }
+  }
 
   var threeDown = false
   var wasThreeDown = false
