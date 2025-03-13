@@ -9,7 +9,7 @@ import ServiceManagement
   override init() {
     super.init()
     #if DEBUG
-    terminateExistingInstance()
+    Self.terminateExistingInstance()
     #endif
     setupStatusItem()
     initAccessibilityPermissionStatus()
@@ -143,7 +143,7 @@ import ServiceManagement
 import AppKit
 
 extension TrayMenu {
-  private func terminateExistingInstance(force: Bool = true) {
+  private static func terminateExistingInstance(force: Bool = true) {
     let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier!)
 
     for app in runningApps where app.processIdentifier != ProcessInfo.processInfo.processIdentifier {
