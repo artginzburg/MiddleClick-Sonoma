@@ -112,6 +112,12 @@ defaults write art.ginzburg.MiddleClick maxTimeDelta 150
 
 > Default is 300
 
+## Building from source
+
+1. Clone the repo
+2. Run `make`
+3. You'll get a `MiddleClick.app` in `./build/`
+
 ## Credits
 
 Created by [Clément Beffa](https://clement.beffa.org/),<br/>
