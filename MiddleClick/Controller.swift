@@ -7,7 +7,6 @@ import IOKit.hid
 @MainActor final class Controller {
   private var restartTimer: Timer?
   private var currentEventTap: CFMachPort?
-  private var currentRunLoopSource: CFRunLoopSource?
 
   private static let fastRestart = false
   private static let wakeRestartTimeout: TimeInterval = fastRestart ? 2 : 10
@@ -31,7 +30,7 @@ import IOKit.hid
     registerMouseCallback()
   }
 
-  /// Schedule listeners to be restarted. If a restart is pending, delay it.
+  /// Schedule listeners to be restarted. If a restart is pending, discard its delay and use the most recently requested delay.
   func scheduleRestart(_ delay: TimeInterval, reason: String) {
     restartLog.info("\(reason), restarting in \(delay)")
     restartTimer?.invalidate()
@@ -74,28 +73,25 @@ import IOKit.hid
       eventsOfInterest: eventMask, callback: Self.mouseCallback, userInfo: nil)
 
     if let tap = currentEventTap {
-      currentRunLoopSource = CFMachPortCreateRunLoopSource(
-        kCFAllocatorDefault, tap, 0)
-      CFRunLoopAddSource(
-        CFRunLoopGetCurrent(), currentRunLoopSource, .commonModes)
+      RunLoop.current.add(tap, forMode: .common)
       CGEvent.tapEnable(tap: tap, enable: true)
     } else {
-      UserDefaults.standard.set(true, forKey: "NSStatusItem Visible Item-0")
+      UserDefaults.standard.set(true, forKey: "NSStatusItem Visible Item-0") // TODO use native statusItem.isVisible = true instead
       scheduleRestart(5, reason: "Couldn't create event tap (check accessibility permission)")
     }
   }
 
   private func unregisterMouseCallback() {
-    // Disable the event tap first
-    if let eventTap = currentEventTap {
-      CGEvent.tapEnable(tap: eventTap, enable: false)
+    guard let eventTap = currentEventTap else {
+      log.error("Could not find the event tap to remove")
+      return
     }
 
+    // Disable the event tap first
+    CGEvent.tapEnable(tap: eventTap, enable: false)
+
     // Remove and release the run loop source
-    if let runLoopSource = currentRunLoopSource {
-      CFRunLoopRemoveSource(CFRunLoopGetCurrent(), runLoopSource, .commonModes)
-      currentRunLoopSource = nil
-    }
+    RunLoop.current.remove(eventTap, forMode: .common)
 
     // Release the event tap
     currentEventTap = nil
