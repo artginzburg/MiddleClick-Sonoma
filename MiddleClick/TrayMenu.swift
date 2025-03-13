@@ -8,12 +8,25 @@ import ServiceManagement
 
   override init() {
     super.init()
-    #if DEBUG
-    Self.terminateExistingInstance()
-    #endif
+
+    if Self.shouldDelayInit {
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+        self.initSequence()
+      }
+    } else {
+      self.initSequence()
+    }
+  }
+  private func initSequence() {
     setupStatusItem()
     initAccessibilityPermissionStatus()
   }
+  
+  #if DEBUG
+  private static let shouldDelayInit = terminateExistingInstance(force: false)
+  #else
+  private static let shouldDelayInit = false
+  #endif
 
   private var hasForcePrompted = false
 
@@ -143,13 +156,17 @@ import ServiceManagement
 import AppKit
 
 extension TrayMenu {
-  private static func terminateExistingInstance(force: Bool = true) {
-    let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier!)
-
-    for app in runningApps where app.processIdentifier != ProcessInfo.processInfo.processIdentifier {
-      log.info("Terminating existing instance of MiddleClick (PID: \(app.processIdentifier))")
-      if force { app.forceTerminate() } else { app.terminate() }
+  private static func terminateExistingInstance(force: Bool = true) -> Bool {
+    let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier!).filter {
+      $0.processIdentifier != ProcessInfo.processInfo.processIdentifier
     }
+
+    for app in runningApps {
+      log.info("Terminating existing instance of MiddleClick (PID: \(app.processIdentifier))")
+      if force { return app.forceTerminate() } else { return app.terminate() }
+    }
+
+    return runningApps.count > 0
   }
 }
 #endif
