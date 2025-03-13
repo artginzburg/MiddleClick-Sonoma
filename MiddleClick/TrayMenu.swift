@@ -12,8 +12,13 @@ import ServiceManagement
     initAccessibilityPermissionStatus()
   }
 
+  private var hasForcePrompted = false
+
   @objc private func initAccessibilityPermissionStatus() {
-    let hasAccessibilityPermission = SystemPermissions.detectAccessibilityIsGranted(forcePrompt: true)
+    let hasAccessibilityPermission = SystemPermissions.detectAccessibilityIsGranted(
+      forcePrompt: !hasForcePrompted
+    )
+    hasForcePrompted = true
 
     updateAccessibilityPermissionStatus(hasAccessibilityPermission)
 
