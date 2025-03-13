@@ -147,6 +147,8 @@ import IOKit.hid
 
   // MARK: - Callbacks
 
+  private static let kCGMouseButtonCenter = Int64(CGMouseButton.center.rawValue)
+
   private static let mouseCallback: CGEventTapCallBack = {
     proxy, type, event, refcon in
     if AppUtils.isIgnoredAppBundle() { return Unmanaged.passUnretained(event) }

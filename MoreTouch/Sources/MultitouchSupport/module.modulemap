@@ -1,0 +1,4 @@
+module MultitouchSupport [system] {
+    header "MultitouchSupport.h"
+    export *
+}

@@ -1,8 +1,6 @@
 import Foundation
 import ConfigCore
 
-let kCGMouseButtonCenter: Int64 = 2
-
 final class Config: ConfigCore {
   required init() {
     Self.options.cacheAll = true

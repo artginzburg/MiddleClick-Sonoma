@@ -1,5 +1,7 @@
 import Foundation
 import CoreGraphics
+import MoreTouchCore
+import MultitouchSupport
 
 @MainActor class TouchHandler {
   static let shared = TouchHandler()
@@ -24,9 +26,9 @@ import CoreGraphics
   private var middleClickX2: Float = 0.0
   private var middleClickY2: Float = 0.0
 
-  private let touchCallback: MTContactCallbackFunction = {
+  private let touchCallback: MTFrameCallbackFunction = {
     device, data, nFingers, timestamp, frame in
-    guard !AppUtils.isIgnoredAppBundle() else { return 0 }
+    guard !AppUtils.isIgnoredAppBundle() else { return }
 
     let state = GlobalState.shared
 
@@ -35,11 +37,11 @@ import CoreGraphics
 
     let handler = TouchHandler.shared
 
-    guard handler.tapToClick else { return 0 }
+    guard handler.tapToClick else { return }
 
     guard nFingers != 0 else {
       handler.handleTouchEnd()
-      return 0
+      return
     }
 
     let isTouchStart = nFingers > 0 && handler.touchStartTime == nil
@@ -56,21 +58,21 @@ import CoreGraphics
       }
     }
 
-    guard !(nFingers < fingersQua) else { return 0 }
+    guard !(nFingers < fingersQua) else { return }
 
     if !allowMoreFingers && nFingers > fingersQua {
       handler.resetMiddleClick()
     }
 
     let isCurrentFingersQuaAllowed = allowMoreFingers ? nFingers >= fingersQua : nFingers == fingersQua
-    guard isCurrentFingersQuaAllowed else { return 0 }
+    guard isCurrentFingersQuaAllowed else { return }
 
     handler.processTouches(data: data, nFingers: nFingers)
 
-    return 0
+    return
   }
 
-  private func processTouches(data: UnsafePointer<Finger>?, nFingers: Int32) {
+  private func processTouches(data: UnsafePointer<MTTouch>?, nFingers: Int32) {
     guard let data = data else { return }
 
     if maybeMiddleClick {
@@ -83,7 +85,7 @@ import CoreGraphics
 
 //    TODO: Wait, what? Why is this iterating by fingersQua instead of nFingers, given that e.g. "allowMoreFingers" exists?
     for i in 0..<Self.fingersQua {
-      let pos = data.advanced(by: i).pointee.normalized.pos
+      let pos = data.advanced(by: i).pointee.normalizedVector.position
       if maybeMiddleClick {
         middleClickX += pos.x
         middleClickY += pos.y
@@ -154,24 +156,10 @@ import CoreGraphics
     currentDeviceList =
     (MTDeviceCreateList()?.takeUnretainedValue() as? [MTDevice]) ?? []
 
-    currentDeviceList.forEach { registerMTDeviceCallback($0, touchCallback) }
+    currentDeviceList.forEach { $0.registerAndStart(touchCallback) }
   }
   func unregisterTouchCallback() {
-    currentDeviceList.forEach { unregisterMTDeviceCallback($0, touchCallback) }
+    currentDeviceList.forEach { $0.unregisterAndStop(touchCallback) }
     currentDeviceList.removeAll()
-  }
-
-  private func registerMTDeviceCallback(
-    _ device: MTDevice, _ callback: @escaping MTContactCallbackFunction
-  ) {
-    MTRegisterContactFrameCallback(device, callback)
-    MTDeviceStart(device, 0)
-  }
-  private func unregisterMTDeviceCallback(
-    _ device: MTDevice, _ callback: @escaping MTContactCallbackFunction
-  ) {
-    MTUnregisterContactFrameCallback(device, callback)
-    MTDeviceStop(device)
-    MTDeviceRelease(device)
   }
 }
