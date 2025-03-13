@@ -8,6 +8,9 @@ import ServiceManagement
 
   override init() {
     super.init()
+    #if DEBUG
+    terminateExistingInstance()
+    #endif
     setupStatusItem()
     initAccessibilityPermissionStatus()
   }
@@ -134,6 +137,22 @@ import ServiceManagement
   var restartListeners: (() -> Void)?
   #endif
 }
+
+#if DEBUG
+// MARK: Dev-only
+import AppKit
+
+extension TrayMenu {
+  private func terminateExistingInstance(force: Bool = true) {
+    let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier!)
+
+    for app in runningApps where app.processIdentifier != ProcessInfo.processInfo.processIdentifier {
+      log.info("Terminating existing instance of MiddleClick (PID: \(app.processIdentifier))")
+      if force { app.forceTerminate() } else { app.terminate() }
+    }
+  }
+}
+#endif
 
 // MARK: Actions
 extension TrayMenu {
