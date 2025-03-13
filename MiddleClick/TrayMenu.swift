@@ -79,8 +79,17 @@ import ServiceManagement
     )
     updateLaunchAtLoginItem()
 
+    #if DEBUG
     _ = menu.addItem(
-      withTitle: "About \(getAppName())...", action: #selector(self.openWebsite), target: self)
+      withTitle: "Restart listeners",
+      action: #selector(restartNow),
+      target: self,
+      keyEquivalent: "r"
+    )
+    #endif
+
+    _ = menu.addItem(
+      withTitle: "About \(getAppName())...", action: #selector(openWebsite), target: self)
 
     _ = menu.addItem(
       withTitle: "Quit", action: #selector(actionQuit), target: self, keyEquivalent: "q")
@@ -117,6 +126,7 @@ import ServiceManagement
 
   #if DEBUG
   private var timesHandledReopen = 0
+  var restartListeners: (() -> Void)?
   #endif
 }
 
@@ -161,6 +171,12 @@ extension TrayMenu {
   @objc private func actionQuit(sender: Any) {
     NSApp.terminate(sender)
   }
+
+  #if DEBUG
+  @objc private func restartNow() {
+    restartListeners?()
+  }
+  #endif
 }
 
 extension TrayMenu: NSApplicationDelegate {

@@ -50,7 +50,7 @@ import IOKit.hid
     scheduleRestart(Self.wakeRestartTimeout, reason: "System woke up")
   }
 
-  private func restartListeners() {
+  func restartListeners() {
     log.info("Restarting now...")
     stopUnstableListeners()
     startUnstableListeners()
