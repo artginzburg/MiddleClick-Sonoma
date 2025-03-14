@@ -1,4 +1,4 @@
-all: archive export
+all: archive export compress
 
 archive:
 	xcodebuild -project MiddleClick.xcodeproj -scheme MiddleClick -configuration Release archive
@@ -8,3 +8,8 @@ export:
 		-archivePath "$(shell ls -td ~/Library/Developer/Xcode/Archives/*/MiddleClick*.xcarchive | head -1)" \
 		-exportPath "$(shell pwd)/build" \
 		-exportOptionsPlist ./build-config/ExportOptions.plist
+
+compress:
+	cd ./build && \
+	rm -f ./MiddleClick.zip && \
+	zip -r9 ./MiddleClick.zip ./MiddleClick.app
