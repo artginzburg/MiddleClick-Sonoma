@@ -23,8 +23,13 @@ jobs:
         run: sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -n 1)/Contents/Developer"
         # use /Applications/Xcode_16.2.app instead if problems occur
 
+      # - name: Unlock Keychain
+      #   run: security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db
+
       - name: Build MiddleClick (Using Makefile)
         run: make all
+        env:
+          OTHER_CODE_SIGN_FLAGS: "--timestamp=none" # a workaround to disable network-based checks
 
       - name: Remove Certificate
         if: always()
