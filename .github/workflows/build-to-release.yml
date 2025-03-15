@@ -19,6 +19,9 @@ jobs:
           security import apple-cert.p12 -k ~/Library/Keychains/login.keychain-db -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
           rm apple-cert.p12
 
+      - name: Select Xcode 16
+        run: sudo xcode-select -s /Applications/Xcode_16.app/Contents/Developer
+
       - name: Build MiddleClick (Using Makefile)
         run: make all
 
