@@ -19,11 +19,9 @@ jobs:
           security import apple-cert.p12 -k ~/Library/Keychains/login.keychain-db -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
           rm apple-cert.p12
 
-      - name: List Installed Xcode Versions
-        run: ls -d /Applications/Xcode*.app
-
       - name: Use Latest Available Xcode
         run: sudo xcode-select -s "$(ls -d /Applications/Xcode*.app | sort -V | tail -n 1)/Contents/Developer"
+        # use /Applications/Xcode_16.2.app instead if problems occur
 
       - name: Build MiddleClick (Using Makefile)
         run: make all
