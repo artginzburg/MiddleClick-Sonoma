@@ -13,3 +13,6 @@ compress:
 	cd ./build && \
 	rm -f ./MiddleClick.zip && \
 	zip -r9 ./MiddleClick.zip ./MiddleClick.app
+
+create-cert:
+	security export -k ~/Library/Keychains/login.keychain-db -t identities -f pkcs12 | base64 | pbcopy

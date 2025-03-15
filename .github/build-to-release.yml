@@ -1,0 +1,57 @@
+name: Build and Sign MiddleClick
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Decode and Import Certificate
+        env:
+          MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+          MACOS_CERTIFICATE_PASSWORD: ${{ secrets.MACOS_CERTIFICATE_PASSWORD }}
+        run: |
+          echo "$MACOS_CERTIFICATE" | base64 --decode > apple-cert.p12
+          security import apple-cert.p12 -k ~/Library/Keychains/login.keychain-db -P "$MACOS_CERTIFICATE_PASSWORD" -T /usr/bin/codesign
+          rm apple-cert.p12
+
+      - name: Build MiddleClick (Using Makefile)
+        run: make all
+
+      - name: Remove Certificate
+        if: always()
+        run: security delete-certificate -c "Apple Development"
+
+      - name: Configure GH CLI
+        run: |
+          gh repo set-default artginzburg/MiddleClick-Sonoma
+
+      - name: Locate latest draft release
+        id: get_release
+        run: |
+          LATEST_DRAFT=$(gh release list --limit 1 --json tagName,isDraft -q '.[] | select(.isDraft) | .tagName')
+          echo "RELEASE_TAG=$LATEST_DRAFT" >> "$GITHUB_ENV"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Remove old asset (if exists)
+        run: |
+          ASSET_NAME="MiddleClick.zip"
+          RELEASE_ID=$(gh release view "$RELEASE_TAG" --json id -q '.id')
+          ASSET_ID=$(gh api repos/{owner}/{repo}/releases/$RELEASE_ID/assets --jq '.[] | select(.name=="'"$ASSET_NAME"'") | .id')
+
+          if [ -n "$ASSET_ID" ]; then
+            gh api --method DELETE repos/{owner}/{repo}/releases/assets/$ASSET_ID
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload new asset
+        run: |
+          gh release upload "$RELEASE_TAG" MiddleClick.zip --clobber
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
