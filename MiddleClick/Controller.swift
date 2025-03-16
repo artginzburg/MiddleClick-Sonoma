@@ -1,8 +1,4 @@
-import Cocoa
-import CoreGraphics
-import Foundation
-import IOKit
-import IOKit.hid
+import AppKit
 
 @MainActor final class Controller {
   private var restartTimer: Timer?
@@ -18,13 +14,7 @@ import IOKit.hid
 
     TouchHandler.shared.registerTouchCallback()
 
-    NSWorkspace.shared.notificationCenter.addObserver(
-      self,
-      selector: #selector(receiveWakeNote(_:)),
-      name: NSWorkspace.didWakeNotification,
-      object: nil
-    )
-
+    observeWakeNotification()
     setupMultitouchListener()
     setupDisplayReconfigurationCallback()
     registerMouseCallback()
@@ -67,10 +57,11 @@ import IOKit.hid
   }
 
   private func registerMouseCallback() {
-    let eventMask = CGEventMask.from(.leftMouseDown, .leftMouseUp, .rightMouseDown, .rightMouseUp)
     currentEventTap = CGEvent.tapCreate(
       tap: .cghidEventTap, place: .headInsertEventTap, options: .defaultTap,
-      eventsOfInterest: eventMask, callback: Self.mouseCallback, userInfo: nil)
+      eventsOfInterest: .from(
+        .leftMouseDown, .leftMouseUp, .rightMouseDown, .rightMouseUp
+      ), callback: Self.mouseCallback, userInfo: nil)
 
     if let tap = currentEventTap {
       RunLoop.current.add(tap, forMode: .common)
@@ -98,20 +89,13 @@ import IOKit.hid
   }
 
   private func setupMultitouchListener() {
-    guard let port = IONotificationPortCreate(kIOMasterPortDefault) else {
-      log.error("Failed to create IONotificationPort.")
-      return
-    }
+    let port = IONotificationPortCreate(kIOMasterPortDefault)
 
-    if let runLoopSource = IONotificationPortGetRunLoopSource(port)?
-      .takeUnretainedValue()
-    {
-      CFRunLoopAddSource(CFRunLoopGetMain(), runLoopSource, .defaultMode)
-    } else {
-      log.error("Failed to get run loop source from IONotificationPort.")
-      IONotificationPortDestroy(port)
-      return
-    }
+    CFRunLoopAddSource(
+      RunLoop.main.getCFRunLoop(),
+      IONotificationPortGetRunLoopSource(port).takeUnretainedValue(),
+      .defaultMode
+    )
 
     var handle: io_iterator_t = 0
     let err = IOServiceAddMatchingNotification(
@@ -119,25 +103,38 @@ import IOKit.hid
       kIOFirstMatchNotification,
       IOServiceMatching("AppleMultitouchDevice"),
       Self.multitouchDeviceAddedCallback,
-      Unmanaged.passUnretained(self).toOpaque(),
+      rawPointer,
       &handle
     )
 
     if err != KERN_SUCCESS {
       log.error("Failed to register notification for touchpad attach: \(err), will not handle newly attached devices")
       IONotificationPortDestroy(port)
-      return  // this `return` was not previously here. But it's only logical to have it.
+      return
     }
 
-    while case let ioService = IOIteratorNext(handle), ioService != 0 {
-      do { IOObjectRelease(ioService) }
+    Self.releaseIterator(handle)
+  }
+
+  private static func releaseIterator(_ iterator: io_iterator_t) {
+    while case let ioService = IOIteratorNext(iterator), ioService != 0 {
+      IOObjectRelease(ioService)
     }
   }
 
   private func setupDisplayReconfigurationCallback() {
     CGDisplayRegisterReconfigurationCallback(
       Self.displayReconfigurationCallback,
-      Unmanaged.passUnretained(self).toOpaque()
+      rawPointer
+    )
+  }
+
+  private func observeWakeNotification() {
+    NSWorkspace.shared.notificationCenter.addObserver(
+      self,
+      selector: #selector(receiveWakeNote),
+      name: NSWorkspace.didWakeNotification,
+      object: nil
     )
   }
 
@@ -147,7 +144,8 @@ import IOKit.hid
 
   private static let mouseCallback: CGEventTapCallBack = {
     proxy, type, event, refcon in
-    if AppUtils.isIgnoredAppBundle() { return Unmanaged.passUnretained(event) }
+    let returnedEvent = Unmanaged.passUnretained(event)
+    guard !AppUtils.isIgnoredAppBundle() else { return returnedEvent }
 
     let state = GlobalState.shared
 
@@ -165,30 +163,37 @@ import IOKit.hid
       event.setIntegerValueField(.mouseEventButtonNumber, value: kCGMouseButtonCenter)
     }
 
-    return Unmanaged.passUnretained(event)
+    return returnedEvent
   }
 
   /// TODO? is this restart necessary? I don't see any changes when it's removed, but keep in mind I've only spent 5 minutes testing different app and system states
   private static let displayReconfigurationCallback:
   CGDisplayReconfigurationCallBack = { display, flags, userData in
-    if flags.contains(.setModeFlag) || flags.contains(.addFlag)
-        || flags.contains(.removeFlag) || flags.contains(.disabledFlag)
-    {
-      let controller = Unmanaged<Controller>.fromOpaque(userData!)
-        .takeUnretainedValue()
-      controller.scheduleRestart(2, reason: "Display reconfigured")
+    if flags.containsAny(of: .setModeFlag, .addFlag, .removeFlag, .disabledFlag) {
+      Controller.from(pointer: userData).scheduleRestart(2, reason: "Display reconfigured")
     }
   }
 
   private static let multitouchDeviceAddedCallback: IOServiceMatchingCallback = {
     (userData, iterator) in
-    while case let ioService = IOIteratorNext(iterator), ioService != 0 {
-      do { IOObjectRelease(ioService) }
+    releaseIterator(iterator)
+
+    Controller.from(pointer: userData).scheduleRestart(2, reason: "Multitouch device added")
+  }
+
+  private lazy var rawPointer = Unmanaged.passUnretained(self).toOpaque()
+  private static func from(pointer: UnsafeMutableRawPointer?) -> Controller {
+    guard let pointer = pointer else {
+      fatalError("Attempted to obtain Controller from nil pointer. This should never happen.")
     }
 
-    let controller = Unmanaged<Controller>.fromOpaque(userData!)
-      .takeUnretainedValue()
-    controller.scheduleRestart(2, reason: "Multitouch device added")
+    return Unmanaged<Controller>.fromOpaque(pointer).takeUnretainedValue()
+  }
+}
+
+extension CGDisplayChangeSummaryFlags {
+  func containsAny(of flags: CGDisplayChangeSummaryFlags...) -> Bool {
+    flags.contains(where: contains)
   }
 }
 
