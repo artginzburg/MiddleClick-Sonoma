@@ -1,4 +1,5 @@
 import ServiceManagement
+import AppKit
 
 @MainActor final class TrayMenu: NSObject {
   private let config = Config.shared
@@ -152,8 +153,6 @@ import ServiceManagement
 
 #if DEBUG
 // MARK: Dev-only
-import AppKit
-
 extension TrayMenu {
   private static func terminateExistingInstance(force: Bool = true) -> Bool {
     let runningApps = NSRunningApplication.runningApplications(withBundleIdentifier: Bundle.main.bundleIdentifier!).filter {

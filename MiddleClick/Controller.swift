@@ -138,7 +138,7 @@ import AppKit
     )
   }
 
-  // MARK: - Callbacks
+  // MARK: Callbacks
 
   private static let kCGMouseButtonCenter = Int64(CGMouseButton.center.rawValue)
 

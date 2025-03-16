@@ -3,7 +3,7 @@ import MultitouchSupport
 
 @MainActor class TouchHandler {
   static let shared = TouchHandler()
-  static let config = Config.shared
+  private static let config = Config.shared
   private init() {
     Self.config.$tapToClick.onSet {
       self.tapToClick = $0
@@ -11,7 +11,7 @@ import MultitouchSupport
   }
 
   /// stored locally, since accessing the cache is more CPU-expensive than a local variable
-  var tapToClick = config.tapToClick
+  private var tapToClick = config.tapToClick
 
   private static let fingersQua = config.minimumFingers
   private static let allowMoreFingers = config.allowMoreFingers
