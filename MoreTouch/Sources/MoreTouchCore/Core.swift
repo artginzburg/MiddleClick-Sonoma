@@ -14,4 +14,8 @@ public extension MTDevice {
     self.stop()
     self.release()
   }
+
+  static func createList() -> [MTDevice] {
+    return MTDeviceCreateList()?.takeUnretainedValue() as? [MTDevice] ?? []
+  }
 }

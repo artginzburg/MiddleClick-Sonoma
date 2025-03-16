@@ -5,26 +5,25 @@ import MultitouchSupport
 
 @MainActor class TouchHandler {
   static let shared = TouchHandler()
+  static let config = Config.shared
   private init() {
-    Config.shared.$tapToClick.onSet {
+    Self.config.$tapToClick.onSet {
       self.tapToClick = $0
     }
   }
 
   /// stored locally, since accessing the cache is more CPU-expensive than a local variable
-  var tapToClick = Config.shared.tapToClick
+  var tapToClick = config.tapToClick
 
-  private static let fingersQua = Config.shared.minimumFingers
-  private static let allowMoreFingers = Config.shared.allowMoreFingers
-  private static let maxDistanceDelta = Config.shared.maxDistanceDelta
-  private static let maxTimeDelta = Config.shared.maxTimeDelta
+  private static let fingersQua = config.minimumFingers
+  private static let allowMoreFingers = config.allowMoreFingers
+  private static let maxDistanceDelta = config.maxDistanceDelta
+  private static let maxTimeDelta = config.maxTimeDelta
 
   private var maybeMiddleClick = false
   private var touchStartTime: Date?
-  private var middleClickX: Float = 0.0
-  private var middleClickY: Float = 0.0
-  private var middleClickX2: Float = 0.0
-  private var middleClickY2: Float = 0.0
+  private var middleClickPos1: SIMD2<Float> = .zero
+  private var middleClickPos2: SIMD2<Float> = .zero
 
   private let touchCallback: MTFrameCallbackFunction = {
     device, data, nFingers, timestamp, frame in
@@ -48,8 +47,7 @@ import MultitouchSupport
     if isTouchStart {
       handler.touchStartTime = Date()
       handler.maybeMiddleClick = true
-      handler.middleClickX = 0.0
-      handler.middleClickY = 0.0
+      handler.middleClickPos1 = .zero
     } else if handler.maybeMiddleClick, let touchStartTime = handler.touchStartTime {
       // Timeout check for middle click
       let elapsedTime = -touchStartTime.timeIntervalSinceNow
@@ -76,49 +74,41 @@ import MultitouchSupport
     guard let data = data else { return }
 
     if maybeMiddleClick {
-      middleClickX = 0.0
-      middleClickY = 0.0
+      middleClickPos1 = .zero
     } else {
-      middleClickX2 = 0.0
-      middleClickY2 = 0.0
+      middleClickPos2 = .zero
     }
 
 //    TODO: Wait, what? Why is this iterating by fingersQua instead of nFingers, given that e.g. "allowMoreFingers" exists?
-    for i in 0..<Self.fingersQua {
-      let pos = data.advanced(by: i).pointee.normalizedVector.position
+    for touch in UnsafeBufferPointer(start: data, count: Self.fingersQua) {
+      let pos = SIMD2(touch.normalizedVector.position)
       if maybeMiddleClick {
-        middleClickX += pos.x
-        middleClickY += pos.y
+        middleClickPos1 += pos
       } else {
-        middleClickX2 += pos.x
-        middleClickY2 += pos.y
+        middleClickPos2 += pos
       }
     }
 
     if maybeMiddleClick {
-      middleClickX2 = middleClickX
-      middleClickY2 = middleClickY
+      middleClickPos2 = middleClickPos1
       maybeMiddleClick = false
     }
   }
 
   private func resetMiddleClick() {
     maybeMiddleClick = false
-    middleClickX = 0.0
-    middleClickY = 0.0
+    middleClickPos1 = .zero
   }
 
-  fileprivate func handleTouchEnd() {
+  private func handleTouchEnd() {
     guard let startTime = touchStartTime else { return }
 
     let elapsedTime = -startTime.timeIntervalSinceNow
     touchStartTime = nil
 
-    guard middleClickX + middleClickY > 0 && elapsedTime <= Self.maxTimeDelta else {
-      return
-    }
+    guard middleClickPos1.isNonZero && elapsedTime <= Self.maxTimeDelta else { return }
 
-    let delta = abs(middleClickX - middleClickX2) + abs(middleClickY - middleClickY2)
+    let delta = middleClickPos1.delta(to: middleClickPos2)
     if delta < Self.maxDistanceDelta && !shouldPreventEmulation() {
       Self.emulateMiddleClick()
     }
@@ -143,23 +133,30 @@ import MultitouchSupport
   private static func postMouseEvent(
     type: CGEventType, button: CGMouseButton, location: CGPoint
   ) {
-    if let event = CGEvent(
+    CGEvent(
       mouseEventSource: nil, mouseType: type, mouseCursorPosition: location,
-      mouseButton: button)
-    {
-      event.post(tap: .cghidEventTap)
-    }
+      mouseButton: button
+    )?.post(tap: .cghidEventTap)
   }
 
   private var currentDeviceList: [MTDevice] = []
   func registerTouchCallback() {
-    currentDeviceList =
-    (MTDeviceCreateList()?.takeUnretainedValue() as? [MTDevice]) ?? []
-
+    currentDeviceList = MTDevice.createList()
     currentDeviceList.forEach { $0.registerAndStart(touchCallback) }
   }
   func unregisterTouchCallback() {
     currentDeviceList.forEach { $0.unregisterAndStop(touchCallback) }
     currentDeviceList.removeAll()
   }
+}
+
+extension SIMD2 where Scalar == Float {
+  init(_ point: MTPoint) { self.init(point.x, point.y) }
+}
+extension SIMD2 where Scalar: FloatingPoint {
+  func delta(to other: SIMD2) -> Scalar {
+    return abs(x - other.x) + abs(y - other.y)
+  }
+
+  var isNonZero: Bool { x != 0 || y != 0 }
 }
