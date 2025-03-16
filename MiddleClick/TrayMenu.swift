@@ -140,7 +140,7 @@ import AppKit
 
   private func createStatusIcon() -> NSImage? {
     guard let icon = NSImage(named: "StatusIcon") else { return nil }
-    icon.size = CGSize(width: 24, height: 24) // TODO? increase size
+    icon.size = CGSize(width: 25, height: 25)
     icon.isTemplate = true
     return icon
   }
