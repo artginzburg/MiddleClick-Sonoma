@@ -1,5 +1,3 @@
-import Foundation
-import CoreGraphics
 import MoreTouchCore
 import MultitouchSupport
 

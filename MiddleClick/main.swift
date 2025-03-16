@@ -1,4 +1,4 @@
-import Cocoa
+import AppKit
 
 private let app = NSApplication.shared
 

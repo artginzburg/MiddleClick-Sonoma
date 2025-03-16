@@ -1,4 +1,4 @@
-import Cocoa
+import AppKit
 
 @MainActor
 final class AppUtils {

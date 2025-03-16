@@ -1,4 +1,3 @@
-import Cocoa
 import ServiceManagement
 
 @MainActor final class TrayMenu: NSObject {

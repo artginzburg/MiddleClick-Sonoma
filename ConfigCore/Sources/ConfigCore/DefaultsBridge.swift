@@ -1,4 +1,4 @@
-import Foundation
+import Foundation.NSUserDefaults
 
 public protocol DefaultsBridge {
   associatedtype T

@@ -1,4 +1,4 @@
-import Foundation
+import CoreFoundation
 
 // Huge thanks to https://github.com/sunshinejr/SwiftyUserDefaults .
 // I found it too late, but some parts of it, like the DefaultsBridge, are just gold.

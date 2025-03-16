@@ -1,4 +1,4 @@
-import Foundation
+import Foundation.NSUserDefaults
 
 class UserDefaultsMigration {
   private init() {}

@@ -1,4 +1,4 @@
-import Foundation
+import Foundation.NSUserDefaults
 
 @MainActor protocol AnyUserDefault {
   associatedtype T: DefaultsSerializable
