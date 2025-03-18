@@ -1,7 +1,7 @@
 import MultitouchSupport
 
 @_silgen_name("MTDeviceCreateList")
-public func MTDeviceCreateList() -> Unmanaged<CFMutableArray>?
+func MTDeviceCreateList() -> Unmanaged<CFMutableArray>?
 
 public extension MTDevice {
   func registerAndStart(_ callback: MTFrameCallbackFunction) {

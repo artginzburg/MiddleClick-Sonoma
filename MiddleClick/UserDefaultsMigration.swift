@@ -1,8 +1,6 @@
 import Foundation.NSUserDefaults
 
-class UserDefaultsMigration {
-  private init() {}
-
+enum UserDefaultsMigration {
   /// Increment this for new migrations
   private static let currentVersion = 1
   private static let schemaVersionKey = "schemaVersion"
