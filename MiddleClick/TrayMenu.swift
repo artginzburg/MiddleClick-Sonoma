@@ -9,6 +9,7 @@ import AppKit
     get { trayMenu.statusItem.isVisible }
     set { trayMenu.statusItem.isVisible = newValue }
   }
+  private var aboutWindow: NSWindow?
 
   override init() {
     super.init()
@@ -90,7 +91,7 @@ import AppKit
     #endif
 
     _ = menu.addItem(
-      withTitle: "About \(getAppName())...", action: #selector(openWebsite), target: self)
+      withTitle: "About \(getAppName())", action: #selector(showAbout), target: self)
 
     _ = menu.addItem(
       withTitle: "Quit", action: #selector(actionQuit), target: self, keyEquivalent: "q")
@@ -223,6 +224,19 @@ extension TrayMenu: NSApplicationDelegate {
 
       return true
     }
+
+  @objc private func showAbout() {
+    if aboutWindow == nil {
+      aboutWindow = NSWindow(contentViewController: AboutViewController())
+      aboutWindow?.titlebarAppearsTransparent = true
+      aboutWindow?.isMovableByWindowBackground = true
+      aboutWindow?.styleMask = [.titled, .closable]
+      aboutWindow?.title = ""
+    }
+    aboutWindow?.center()
+    aboutWindow?.makeKeyAndOrderFront(nil)
+    NSApp.activate(ignoringOtherApps: true)
+  }
 }
 
 // Launch at login:
