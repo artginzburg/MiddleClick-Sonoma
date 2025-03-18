@@ -7,8 +7,7 @@ extension Controller {
 
   func registerMouseCallback() {
     if !Self.mouseEventHandler.registerMouseCallback(callback: Self.mouseCallback) {
-      UserDefaults.standard.set(true, forKey: "NSStatusItem Visible Item-0") // TODO: Use native statusItem.isVisible = true instead
-      scheduleRestart(5, reason: "Couldn't create event tap (check accessibility permission)")
+      log.info("Couldn't create event tap (check accessibility permission)")
     }
   }
 
@@ -37,7 +36,7 @@ extension Controller {
 class MouseEventHandler {
   private var currentEventTap: CFMachPort?
 
-  func registerMouseCallback(callback: @escaping CGEventTapCallBack) -> Bool {
+  func registerMouseCallback(callback: CGEventTapCallBack) -> Bool {
     currentEventTap = CGEvent.tapCreate(
       tap: .cghidEventTap,
       place: .headInsertEventTap,
@@ -61,7 +60,7 @@ class MouseEventHandler {
 
   func unregisterMouseCallback() {
     guard let eventTap = currentEventTap else {
-      log.error("Could not find the event tap to remove")
+      log.info("Could not find the event tap to remove")
       return
     }
 

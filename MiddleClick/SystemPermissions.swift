@@ -1,7 +1,6 @@
-import CoreFoundation
 @preconcurrency import ApplicationServices
 
-class SystemPermissions {
+enum SystemPermissions {
   /// #### To quickly reset the permission, run:
   ///
   /// ```

@@ -17,11 +17,18 @@ import AppKit
     log.info("Starting listeners...")
 
     TouchHandler.shared.registerTouchCallback()
-
     observeWakeNotification()
     multitouchManager.setupMultitouchListener()
     setupDisplayReconfigurationCallback()
-    registerMouseCallback()
+
+    accessibilityMonitor.addListener { becameTrusted in
+      if becameTrusted {
+        self.registerMouseCallback()
+      } else {
+        trayMenu.isStatusItemVisible = true
+        Self.mouseEventHandler.unregisterMouseCallback()
+      }
+    }
   }
 
   /// Schedule listeners to be restarted. If a restart is pending, discard its delay and use the most recently requested delay.
