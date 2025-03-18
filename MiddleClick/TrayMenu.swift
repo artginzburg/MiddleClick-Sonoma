@@ -118,8 +118,8 @@ import AppKit
     statusItem.button?.image = createStatusIcon()
   }
 
-  private func createStatusIcon() -> NSImage? {
-    guard let icon = NSImage(named: "StatusIcon") else { return nil }
+  private func createStatusIcon() -> NSImage {
+    let icon = NSImage.statusIcon
     icon.size = CGSize(width: 25, height: 25)
     return icon
   }
