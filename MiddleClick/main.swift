@@ -4,14 +4,18 @@ private let app = NSApplication.shared
 
 UserDefaultsMigration.migrateIfNeeded()
 
+let accessibilityMonitor = AccessibilityMonitor()
+
 let controller = Controller()
 controller.start()
 
-private let menu = TrayMenu()
+let trayMenu = TrayMenu()
 #if DEBUG
-menu.restartListeners = controller.restartListeners
+trayMenu.restartListeners = controller.restartListeners
 #endif
 
-app.delegate = menu
+accessibilityMonitor.start()
+
+app.delegate = trayMenu
 
 app.run()

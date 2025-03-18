@@ -5,21 +5,23 @@ import AppKit
   private let config = Config.shared
   private var infoItem, tapToClickItem, accessibilityPermissionStatusItem, accessibilityPermissionActionItem, ignoredAppItem, launchAtLoginItem: NSMenuItem!
   private let statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+  var isStatusItemVisible: Bool {
+    get { trayMenu.statusItem.isVisible }
+    set { trayMenu.statusItem.isVisible = newValue }
+  }
 
   override init() {
     super.init()
 
     if Self.shouldDelayInit {
-      DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-        self.initSequence()
-      }
+      DispatchQueue.main.asyncAfter(deadline: .now() + 1, execute: self.initSequence)
     } else {
       self.initSequence()
     }
   }
   private func initSequence() {
     setupStatusItem()
-    initAccessibilityPermissionStatus()
+    accessibilityMonitor.addListener(onChange: updateAccessibilityPermissionStatus)
   }
   
   #if DEBUG
@@ -27,28 +29,6 @@ import AppKit
   #else
   private static let shouldDelayInit = false
   #endif
-
-  private var hasForcePrompted = false
-
-  @objc private func initAccessibilityPermissionStatus() {
-    let hasAccessibilityPermission = SystemPermissions.detectAccessibilityIsGranted(
-      forcePrompt: !hasForcePrompted
-    )
-    hasForcePrompted = true
-
-    updateAccessibilityPermissionStatus(hasAccessibilityPermission)
-
-    if !hasAccessibilityPermission {
-      Timer
-        .scheduledTimer(
-          timeInterval: 0.3,
-          target: self,
-          selector: #selector(initAccessibilityPermissionStatus),
-          userInfo: nil,
-          repeats: false
-        )
-    }
-  }
 
   private func updateAccessibilityPermissionStatus(_ hasAccessibilityPermission: Bool) {
     statusItem.button?.appearsDisabled = !hasAccessibilityPermission
