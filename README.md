@@ -10,7 +10,7 @@
     <b>Emulate a scroll wheel click with three finger Click or Tap on MacBook trackpad and Magic Mouse</b>
   </p>
   <p>
-    with <b>macOS</b> Sonoma<a href="https://www.apple.com/macos/sonoma/"><sup>14</sup></a> support!
+    with <b>macOS</b> Sequoia<a href="https://www.apple.com/macos/macos-sequoia/"><sup>15</sup></a> support!
   </p>
   <br>
 </div>
