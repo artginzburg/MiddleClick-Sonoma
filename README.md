@@ -1,5 +1,5 @@
-<a href="https://github.com/artginzburg/MiddleClick-Sonoma/releases">
-  <img align="right" src="https://img.shields.io/github/downloads/artginzburg/MiddleClick-Sonoma/total?color=teal" title="GitHub All Releases">
+<a href="https://github.com/artginzburg/MiddleClick/releases">
+  <img align="right" src="https://img.shields.io/github/downloads/artginzburg/MiddleClick/total?color=teal" title="GitHub All Releases">
 </a>
 
 <div align="center">
@@ -55,7 +55,7 @@ brew install --cask --no-quarantine middleclick
 
 > Check out [the cask](https://github.com/Homebrew/homebrew-cask/blob/master/Casks/m/middleclick.rb) if you're interested
 
-### <a href="https://github.com/artginzburg/MiddleClick-Sonoma/releases/latest/download/MiddleClick.zip">Direct Download · <img align="center" alt="GitHub release" src="https://img.shields.io/github/release/artginzburg/middleclick-Sonoma?label=%20&color=gray"></a>
+### <a href="https://github.com/artginzburg/MiddleClick/releases/latest/download/MiddleClick.zip">Direct Download · <img align="center" alt="GitHub release" src="https://img.shields.io/github/release/artginzburg/MiddleClick?label=%20&color=gray"></a>
 
 <br>
 

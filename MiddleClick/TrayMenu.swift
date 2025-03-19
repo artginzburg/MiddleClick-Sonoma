@@ -23,7 +23,7 @@ import AppKit
     setupStatusItem()
     accessibilityMonitor.addListener(onChange: updateAccessibilityPermissionStatus)
   }
-  
+
   #if DEBUG
   private static let shouldDelayInit = terminateExistingInstance(force: false)
   #else
@@ -151,7 +151,7 @@ extension TrayMenu {
 // MARK: Actions
 extension TrayMenu {
   @objc private func openWebsite() {
-    if let url = URL(string: "https://github.com/artginzburg/MiddleClick-Sonoma") {
+    if let url = URL(string: "https://github.com/artginzburg/MiddleClick") {
       NSWorkspace.shared.open(url)
     }
   }
